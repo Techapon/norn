@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "432286646491",
+    "project_id": "nornsabai-b019a",
+    "storage_bucket": "nornsabai-b019a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432286646491:android:bdef6ef8b4c48354088cfe",
+        "android_client_info": {
+          "package_name": "com.example.nornsabai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBq_YdpGAnVolVa7pbvYQbPbjRJCeEii4A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
