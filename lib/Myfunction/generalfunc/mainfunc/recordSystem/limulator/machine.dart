@@ -16,7 +16,7 @@ Future<void> recordVoiceMachince(
   // loop จนกว่า timeRunning() return false
   while (timeRunning()) {
     DateTime shortStart = DateTime.now();
-    await Future.delayed(Duration(microseconds: 1000)); // 
+    await Future.delayed(Duration(microseconds: 500)); // 
 
     double value = sim.nextValue(); // รับค่าลมหายใจสมจริง 0–100
     DateTime shortEnd = DateTime.now();

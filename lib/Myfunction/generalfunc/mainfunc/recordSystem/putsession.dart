@@ -73,58 +73,32 @@ Future<bool> addSleepSessionData({
                 .collection('minute')
                 .doc(minuteKey); // minute30-1, minute30-2, ...
 
-            // 5. เพิ่ม minute document (only dot list - no separate metadata)
+            // 5. เพิ่ม minute document (only dot list)
             batch.set(minuteDocRef, {
               'id': minuteValue['id'] ?? 0,
-              'dot': minuteValue['dot'] ?? [], // ✅ Only dot list (contains filtered peaks + start/end)
+              'dot': minuteValue['dot'] ?? [],
             });
           }
         });
       }
     });
 
-    final remainer = sleepDetail['remainer'] as Map<String, dynamic>? ?? {};
+    // ✅ FIXED: Remainer structure - remainer เป็น List<double> โดยตรง
+    final remainer = sleepDetail['remainer'] as List<dynamic>? ?? [];
     if (remainer.isNotEmpty) {
       // สร้าง remainer document
       final remainerDocRef = sessionDocRef
           .collection('sleepdetail')
           .doc('remainer');
 
-       List<dynamic> secondsData = [];
+      // ✅ remainer เป็น List ของ dots โดยตรง
+      final remainerDots = List<double>.from(remainer);
 
-      // วนลูปผ่าน minute30, seconds
-      remainer.forEach((key, value) {
-        if (value is Map<String, dynamic>) {
-          if (key.startsWith('minute30-')) {
-            // minute30 subcollection
-            final minute30DocRef = remainerDocRef
-                .collection('minute30')
-                .doc(key);
-
-            batch.set(minute30DocRef, {
-              'id': value['id'] ?? 0,
-              'dot': value['dot'] ?? [], // ✅ Only dot list (contains filtered peaks + start/end)
-            });
-          } 
-          
-          else if (key == 'seconds') {
-            secondsData = value['dot'] ?? [];
-          }
-        }
+      // ✅ Set remainer document with dot as direct field
+      batch.set(remainerDocRef, {
+        'dot': remainerDots, // ✅ Dots เป็น field ของ remainer โดยตรง
       });
-
-      if (secondsData.isNotEmpty) {
-        final secondsDocRef = remainerDocRef
-            .collection('seconds')
-            .doc('seconds');
-
-        batch.set(secondsDocRef, {
-          'dot': secondsData, // ✅ Only dot list (contains filtered peaks + start/end)
-        });
-      }
-      
     }
-
 
     // Commit batch (execute ทั้งหมดในครั้งเดียว)
     await batch.commit();

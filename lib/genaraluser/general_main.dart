@@ -5,6 +5,7 @@ import 'package:nornsabai/genaraluser/pange/record_general.dart';
 import 'package:nornsabai/genaraluser/pange/result_ganeral.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
+
 class GeneralMainPage extends StatefulWidget {
   const GeneralMainPage({super.key});
 
@@ -17,9 +18,11 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
 
   Color navbarcolor = BgColor.BottomNav_bg.color_code;
 
-  final List<Widget> _pages = [
+  final GlobalKey<ResultGaneralState> _resultKey = GlobalKey<ResultGaneralState>();
+
+  List<Widget> get _pages => [
     RecordGeneral(),
-    ResultGaneral(),
+    ResultGaneral(key: _resultKey),
     Center(child: Text('Trend Page')),
     Center(child: Text('search Page')),
     ProfileGeneral(),
@@ -30,7 +33,10 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
     return Scaffold(
       extendBody: true,
       backgroundColor: BgColor.Bg1.color_code,
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
 
       bottomNavigationBar: CircleNavBar(
         activeIndex: _currentIndex,
@@ -42,27 +48,30 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
           setState(() {
             _currentIndex = index;
           });
-          
+
+          // ✅ เมื่อกดไปที่ Result tab → เช็คว่ามี session ใหม่
+          // if (index == 1) {
+          //   _resultKey.currentState?.checkAndRefresh();
+          // }
         },
         
         activeIcons: [
-          Icon(Icons.mic, color: Colors.white,size: 37.5,),
-          Icon(Icons.play_arrow_outlined, color: Colors.white,size: 37.5,),
-          Icon(Icons.bar_chart, color: Colors.white,size: 37.5,),
-          Icon(Icons.search_outlined, color: Colors.white,size: 37.5,),
-          Icon(Icons.account_circle, color: Colors.white,size: 37.5,),
+          Icon(Icons.mic, color: Colors.white, size: 37.5),
+          Icon(Icons.play_arrow_outlined, color: Colors.white, size: 37.5),
+          Icon(Icons.bar_chart, color: Colors.white, size: 37.5),
+          Icon(Icons.search_outlined, color: Colors.white, size: 37.5),
+          Icon(Icons.account_circle, color: Colors.white, size: 37.5),
         ],
         
         inactiveIcons: [
-          Icon(Icons.mic, color: Colors.white.withOpacity(0.26),size: 37.5,),
-          Icon(Icons.play_arrow_outlined, color: Colors.white.withOpacity(0.26),size: 37.5,),
-          Icon(Icons.bar_chart, color: Colors.white.withOpacity(0.26),size: 37.5,),
-          Icon(Icons.search_outlined, color: Colors.white.withOpacity(0.26),size: 37.5,),
-          Icon(Icons.account_circle, color: Colors.white.withOpacity(0.26),size: 37.5,),
+          Icon(Icons.mic, color: Colors.white.withOpacity(0.26), size: 37.5),
+          Icon(Icons.play_arrow_outlined, color: Colors.white.withOpacity(0.26), size: 37.5),
+          Icon(Icons.bar_chart, color: Colors.white.withOpacity(0.26), size: 37.5),
+          Icon(Icons.search_outlined, color: Colors.white.withOpacity(0.26), size: 37.5),
+          Icon(Icons.account_circle, color: Colors.white.withOpacity(0.26), size: 37.5),
         ],
 
-
-        levels: ["Record", "Result", "Trend","Discover","Profile"],
+        levels: ["Record", "Result", "Trend", "Discover", "Profile"],
         activeLevelsStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,

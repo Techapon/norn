@@ -7,547 +7,501 @@ import 'dart:async';
 import 'dart:math' as math;
 
 // ============================================================================
-// CACHING - ดึงข้อมูลเพียงครั้งเดียว
+// SLEEP CONTROLLER - โหลด session หนึ่งครั้งแล้วเก็บ cache
 // ============================================================================
 
-class SleepDataCache {
-  static int? lastSessionId;
-  static List<DotDataPoint>? cachedAllDots;
-  static List<DotDataPoint>? cachedOverviewDots;
-  static Map<String, dynamic>? cachedSessionData;
+class SleepController {
+  Map<String, dynamic>? sessionData;
+  List<DotDataPoint> allDots = [];
+  List<DotDataPoint> overviewDots = [];
+  int? _sessionId;
 
-  static void clear() {
-    lastSessionId = null;
-    cachedAllDots = null;
-    cachedOverviewDots = null;
-    cachedSessionData = null;
+  bool get isLoaded => sessionData != null && allDots.isNotEmpty;
+
+  Future<void> loadLatestSession() async {
+    if (isLoaded) return; // ถ้าโหลดแล้วไม่ทำซ้ำ
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final userEmail = user.email;
+      final firestore = FirebaseFirestore.instance;
+
+      final sessionsQuery = await firestore
+          .collection('General user')
+          .doc(userEmail)
+          .collection('sleepsession')
+          .orderBy('id', descending: true)
+          .limit(1)
+          .get();
+
+      if (sessionsQuery.docs.isEmpty) return;
+
+      final latestSession = sessionsQuery.docs.first;
+      final sessionId = latestSession.get('id') as int;
+
+      if (_sessionId == sessionId && allDots.isNotEmpty) {
+        // ใช้ cache เดิม
+        return;
+      }
+
+      allDots = await _fetchAllDots(latestSession.reference);
+      overviewDots = _createOverviewData(allDots, 60);
+
+      _sessionId = sessionId;
+      sessionData = latestSession.data();
+    } catch (e) {
+      print('Error loading latest session: $e');
+    }
   }
 
-  static bool isValid(int currentSessionId) {
-    return lastSessionId == currentSessionId && cachedAllDots != null;
+  void clearCache() {
+    _sessionId = null;
+    sessionData = null;
+    allDots = [];
+    overviewDots = [];
   }
-}
 
-// ============================================================================
-// ✅ MAIN FUNCTION - ดึงข้อมูลเพียงครั้งเดียว
-// ============================================================================
+  // เพิ่ม method สำหรับ force reload
+  Future<void> forceReload() async {
+    clearCache();
+    await loadLatestSession();
+  }
 
-/// ✅ ฟังก์ชั่นหลักในการดึงข้อมูล (ดึงเพียงครั้งเดียว)
-/// ทุก function อื่นจะใช้ข้อมูลจากที่นี่เท่านั้น
-Future<Map<String, dynamic>> getLatestSleepSessionWithCache() async {
-  try {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return {};
+  // ========================================================================
+  // FETCH ALL DOTS
+  // ========================================================================
 
-    final userEmail = user.email;
-    final firestore = FirebaseFirestore.instance;
+  Future<List<DotDataPoint>> _fetchAllDots(
+      DocumentReference sessionDocRef) async {
+    List<DotDataPoint> allDots = [];
+    double currentHour = 0;
 
-    // ดึง session ล่าสุด
-    final sessionsQuery = await firestore
-        .collection('General user')
-        .doc(userEmail)
-        .collection('sleepsession')
-        .orderBy('id', descending: true)
-        .limit(1)
-        .get();
+    final sleepdetailRef = sessionDocRef.collection('sleepdetail');
+    final hourDocs = await sleepdetailRef.get();
 
-    if (sessionsQuery.docs.isEmpty) return {};
+    List<QueryDocumentSnapshot> hourDocsList = hourDocs.docs
+        .where((doc) => doc.id != 'remainer')
+        .toList();
 
-    final latestSession = sessionsQuery.docs.first;
-    final sessionId = latestSession.get('id') as int;
+    hourDocsList.sort((a, b) {
+      int idA = int.tryParse(a.id.replaceFirst('hour', '')) ?? 0;
+      int idB = int.tryParse(b.id.replaceFirst('hour', '')) ?? 0;
+      return idA.compareTo(idB);
+    });
 
-    // ✅ ตรวจสอบ cache - ถ้า session ไม่เปลี่ยน ใช้อันเก่า
-    if (SleepDataCache.isValid(sessionId)) {
-      return {
-        'allDots': SleepDataCache.cachedAllDots,
-        'overviewDots': SleepDataCache.cachedOverviewDots,
-        'sessionData': SleepDataCache.cachedSessionData,
-      };
+    for (var hourDoc in hourDocsList) {
+      final hourId = int.tryParse(hourDoc.id.replaceFirst('hour', '')) ?? 0;
+      currentHour = hourId.toDouble();
+
+      final minuteDocs = await sessionDocRef
+          .collection('sleepdetail')
+          .doc(hourDoc.id)
+          .collection('minute')
+          .get();
+
+      final sortedMinutes = minuteDocs.docs.toList()
+        ..sort((a, b) {
+          int idA = a.get('id') as int? ?? 0;
+          int idB = b.get('id') as int? ?? 0;
+          return idA.compareTo(idB);
+        });
+
+      for (var minuteDoc in sortedMinutes) {
+        final dots = minuteDoc.get('dot') as List<dynamic>? ?? [];
+        for (var dot in dots) {
+          if (dot is num) {
+            final dotValue = dot.toDouble();
+            allDots.add(DotDataPoint(
+              x: currentHour,
+              y: dotValue,
+              category: _getCategory(dotValue),
+            ));
+          }
+        }
+      }
     }
 
-    // ✅ ดึงข้อมูล dots เมื่อ session เปลี่ยน
-    final allDots = await _fetchAllDots(latestSession.reference);
-    final overviewDots = _createOverviewData(allDots, 60);
+    final remainerDoc = await sessionDocRef
+        .collection('sleepdetail')
+        .doc('remainer')
+        .get();
 
-    // เก็บใน cache
-    SleepDataCache.lastSessionId = sessionId;
-    SleepDataCache.cachedAllDots = allDots;
-    SleepDataCache.cachedOverviewDots = overviewDots;
-    SleepDataCache.cachedSessionData = latestSession.data();
+    if (remainerDoc.exists) {
+      final minute30Docs = await remainerDoc.reference
+          .collection('minute30')
+          .get();
 
+      final sortedMinute30 = minute30Docs.docs.toList()
+        ..sort((a, b) {
+          int idA = a.get('id') as int? ?? 0;
+          int idB = b.get('id') as int? ?? 0;
+          return idA.compareTo(idB);
+        });
+
+      currentHour += 0.1;
+      for (var minuteDoc in sortedMinute30) {
+        final dots = minuteDoc.get('dot') as List<dynamic>? ?? [];
+        for (var dot in dots) {
+          if (dot is num) {
+            final dotValue = dot.toDouble();
+            allDots.add(DotDataPoint(
+              x: currentHour,
+              y: dotValue,
+              category: _getCategory(dotValue),
+            ));
+          }
+        }
+      }
+
+      final secondsDoc = await remainerDoc.reference
+          .collection('seconds')
+          .doc('seconds')
+          .get();
+
+      if (secondsDoc.exists) {
+        final dots = secondsDoc.get('dot') as List<dynamic>? ?? [];
+        for (var dot in dots) {
+          if (dot is num) {
+            final dotValue = dot.toDouble();
+            allDots.add(DotDataPoint(
+              x: currentHour,
+              y: dotValue,
+              category: _getCategory(dotValue),
+            ));
+          }
+        }
+      }
+    }
+
+    return allDots;
+  }
+
+  List<DotDataPoint> _createOverviewData(List<DotDataPoint> allDots, int groupSize) {
+    if (allDots.isEmpty) return [];
+
+    List<DotDataPoint> overviewDots = [];
+    for (int i = 0; i < allDots.length; i += groupSize) {
+      int endIndex =
+          (i + groupSize < allDots.length) ? i + groupSize : allDots.length;
+      List<DotDataPoint> group = allDots.sublist(i, endIndex);
+
+      double avgY = group.map((d) => d.y).reduce((a, b) => a + b) / group.length;
+      double avgX = group.map((d) => d.x).reduce((a, b) => a + b) / group.length;
+      String avgCategory = _getCategory(avgY);
+
+      overviewDots.add(DotDataPoint(
+        x: avgX,
+        y: avgY,
+        category: avgCategory,
+      ));
+    }
+
+    return overviewDots;
+  }
+
+  String _getCategory(double value) {
+    if (0 <= value && value <= 25) return "Apnea";
+    if (25 < value && value <= 50) return "Quiet";
+    if (50 < value && value <= 75) return "Lound";
+    if (75 < value && value <= 100) return "Very Lound";
+    return "Unknown";
+  }
+
+  DateTime? _parseDateTime(dynamic timeRaw) {
+    try {
+      if (timeRaw is Timestamp) return timeRaw.toDate();
+      if (timeRaw is String) return DateTime.parse(timeRaw);
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _formatTime(dynamic timeRaw) {
+    final dt = _parseDateTime(timeRaw);
+    if (dt == null) return '--:--';
+    return DateFormat('h:mm a').format(dt);
+  }
+
+  // ==========================
+  // PUBLIC UTILITY FUNCTIONS
+  // ==========================
+
+  Future<List<String>> getDateToday() async {
+    if (!isLoaded) return ['--', '--'];
+    final startTime = sessionData!['startTime'];
+    final dt = _parseDateTime(startTime);
+    if (dt == null) return ['--', '--'];
+    return [
+      DateFormat('EEEE d').format(dt),
+      DateFormat('MMMM').format(dt),
+    ];
+  }
+
+  Map<String, String> getSleepStartEnd() {
+    if (!isLoaded) return {'startSession': '--:--', 'endSession': '--:--'};
+    return {
+      'startSession': _formatTime(sessionData!['startTime']),
+      'endSession': _formatTime(sessionData!['endTime']),
+    };
+  }
+
+  String getTotalSleepTime() {
+    if (!isLoaded) return '--:--';
+    final start = _parseDateTime(sessionData!['startTime']);
+    final end = _parseDateTime(sessionData!['endTime']);
+    if (start == null || end == null) return '--:--';
+    final duration = end.difference(start);
+    return '${duration.inHours}:${(duration.inMinutes % 60).toString().padLeft(2, '0')}';
+  }
+
+  Future<Map<String, CategoryDetail>> getCategoryDetails() async {
+    if (!isLoaded) return {};
+    final apneaCount = sessionData!['apnea'] as int? ?? 0;
+    final quietCount = sessionData!['quiet'] as int? ?? 0;
+    final loundCount = sessionData!['lound'] as int? ?? 0;
+    final veryLoundCount = sessionData!['verylound'] as int? ?? 0;
+
+    return {
+      'apnea': CategoryDetail(
+        color: Colors.blue,
+        count: apneaCount,
+        start: 0,
+        end: 25,
+        name: 'Apnea',
+      ),
+      'quiet': CategoryDetail(
+        color: Colors.green,
+        count: quietCount,
+        start: 25,
+        end: 50,
+        name: 'Quiet',
+      ),
+      'lound': CategoryDetail(
+        color: Colors.orange,
+        count: loundCount,
+        start: 50,
+        end: 75,
+        name: 'Lound',
+      ),
+      'veryLound': CategoryDetail(
+        color: Colors.red,
+        count: veryLoundCount,
+        start: 75,
+        end: 100,
+        name: 'Very Lound',
+      ),
+    };
+  }
+
+  Future<SnoreStats> getSnoreStatistics() async {
+    if (!isLoaded) return SnoreStats(totalSnoreTime: '--:--', snorePercentage: 0.0, totalSnoreDots: 0);
+    final loundCount = sessionData!['lound'] as int? ?? 0;
+    final veryLoundCount = sessionData!['verylound'] as int? ?? 0;
+    final totalSnoreDots = loundCount + veryLoundCount;
+
+    final totalSleepStr = getTotalSleepTime();
+    final totalSleepMinutes = _parseTimeToMinutes(totalSleepStr);
+
+    final snoreMinutes = totalSnoreDots / 60.0;
+    final snorePercentage =
+        totalSleepMinutes > 0 ? (snoreMinutes / totalSleepMinutes) * 100 : 0.0;
+
+    final snoreHours = (snoreMinutes ~/ 60).toInt();
+    final snoreMinutesRemainder = (snoreMinutes % 60).toInt();
+    final totalSnoreTime =
+        '$snoreHours:${snoreMinutesRemainder.toString().padLeft(2, '0')}';
+
+    return SnoreStats(
+      totalSnoreTime: totalSnoreTime,
+      snorePercentage: double.parse(snorePercentage.toStringAsFixed(1)),
+      totalSnoreDots: totalSnoreDots,
+    );
+  }
+
+  Map<String, List<DotDataPoint>> getGraphData() {
     return {
       'allDots': allDots,
       'overviewDots': overviewDots,
-      'sessionData': latestSession.data(),
     };
-  } catch (e) {
-    print('❌ Error: $e');
-    return {};
   }
-}
 
-// ============================================================================
-// HELPER FUNCTIONS - ดึงข้อมูล dots
-// ============================================================================
-
-Future<List<DotDataPoint>> _fetchAllDots(
-    DocumentReference sessionDocRef) async {
-  List<DotDataPoint> allDots = [];
-  double currentHour = 0;
-
-  final sleepdetailRef = sessionDocRef.collection('sleepdetail');
-  final hourDocs = await sleepdetailRef.get();
-
-  List<QueryDocumentSnapshot> hourDocsList = hourDocs.docs
-      .where((doc) => doc.id != 'remainer')
-      .toList();
-
-  hourDocsList.sort((a, b) {
-    int idA = int.tryParse(a.id.replaceFirst('hour', '')) ?? 0;
-    int idB = int.tryParse(b.id.replaceFirst('hour', '')) ?? 0;
-    return idA.compareTo(idB);
-  });
-
-  // ดึง hour data
-  for (var hourDoc in hourDocsList) {
-    final hourId = int.tryParse(hourDoc.id.replaceFirst('hour', '')) ?? 0;
-    currentHour = hourId.toDouble();
-
-    final minuteDocs = await sessionDocRef
-        .collection('sleepdetail')
-        .doc(hourDoc.id)
-        .collection('minute')
-        .get();
-
-    final sortedMinutes = minuteDocs.docs.toList()
-      ..sort((a, b) {
-        int idA = a.get('id') as int? ?? 0;
-        int idB = b.get('id') as int? ?? 0;
-        return idA.compareTo(idB);
-      });
-
-    for (var minuteDoc in sortedMinutes) {
-      final dots = minuteDoc.get('dot') as List<dynamic>? ?? [];
-      for (var dot in dots) {
-        if (dot is num) {
-          final dotValue = dot.toDouble();
-          allDots.add(DotDataPoint(
-            x: currentHour,
-            y: dotValue,
-            category: _getCategory(dotValue),
-          ));
-        }
+  Future<bool> updateSessionNote(String newNote) async {
+    try {
+      final wordCount = newNote.trim().isEmpty
+          ? 0
+          : newNote.trim().split(RegExp(r'\s+')).length;
+      if (wordCount > 100) {
+        print('Note exceeds 100 words. Current: $wordCount words');
+        return false;
       }
-    }
-  }
 
-  // ดึง remainer data
-  final remainerDoc = await sessionDocRef
-      .collection('sleepdetail')
-      .doc('remainer')
-      .get();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return false;
 
-  if (remainerDoc.exists) {
-    // ✅ Read from minute30 collection (30-minute intervals)
-    final minute30Docs = await remainerDoc.reference
-        .collection('minute30')
-        .get();
+      final userEmail = user.email;
+      final firestore = FirebaseFirestore.instance;
 
-    final sortedMinute30 = minute30Docs.docs.toList()
-      ..sort((a, b) {
-        int idA = a.get('id') as int? ?? 0;
-        int idB = b.get('id') as int? ?? 0;
-        return idA.compareTo(idB);
-      });
+      final sessionsQuery = await firestore
+          .collection('General user')
+          .doc(userEmail)
+          .collection('sleepsession')
+          .orderBy('id', descending: true)
+          .limit(1)
+          .get();
 
-    // Continue from last hour
-    currentHour += 0.1;
-    for (var minuteDoc in sortedMinute30) {
-      final dots = minuteDoc.get('dot') as List<dynamic>? ?? [];
-      for (var dot in dots) {
-        if (dot is num) {
-          final dotValue = dot.toDouble();
-          allDots.add(DotDataPoint(
-            x: currentHour,
-            y: dotValue,
-            category: _getCategory(dotValue),
-          ));
-        }
+      if (sessionsQuery.docs.isEmpty) return false;
+
+      final latestSession = sessionsQuery.docs.first;
+      final oldNote = latestSession.get('note') as String? ?? '';
+
+      if (oldNote == newNote) {
+        print('Note unchanged. No update needed.');
+        return true;
       }
-    }
 
-    final secondsDoc = await remainerDoc.reference
-        .collection('seconds')
-        .doc('seconds')
-        .get();
+      await latestSession.reference.update({'note': newNote});
+      clearCache();
 
-    if (secondsDoc.exists) {
-      final dots = secondsDoc.get('dot') as List<dynamic>? ?? [];
-      // currentHour += 0.1; // ใช้ค่าเดิม
-      for (var dot in dots) {
-        if (dot is num) {
-          final dotValue = dot.toDouble();
-          allDots.add(DotDataPoint(
-            x: currentHour, // ใช้ค่า x เดิม
-            y: dotValue,
-            category: _getCategory(dotValue),
-          ));
-        }
-      }
-    }
-  }
-
-  return allDots;
-}
-
-List<DotDataPoint> _createOverviewData(
-    List<DotDataPoint> allDots, int groupSize) {
-  if (allDots.isEmpty) return [];
-
-  List<DotDataPoint> overviewDots = [];
-
-  for (int i = 0; i < allDots.length; i += groupSize) {
-    int endIndex =
-        (i + groupSize < allDots.length) ? i + groupSize : allDots.length;
-    List<DotDataPoint> group = allDots.sublist(i, endIndex);
-
-    double avgY = group.map((d) => d.y).reduce((a, b) => a + b) / group.length;
-    
-    // **แก้ไข:** ใช้ค่า X ของจุดแรกในกลุ่มสำหรับ Overview 
-    // หรือค่าเฉลี่ย X
-    double avgX = group.map((d) => d.x).reduce((a, b) => a + b) / group.length;
-    
-    String avgCategory = _getCategory(avgY);
-
-    overviewDots.add(DotDataPoint(
-      x: avgX,
-      y: avgY,
-      category: avgCategory,
-    ));
-  }
-
-  return overviewDots;
-}
-
-String _getCategory(double value) {
-  if (0 <= value && value <= 25) return "Apnea";
-  if (25 < value && value <= 50) return "Quiet";
-  if (50 < value && value <= 75) return "Lound";
-  if (75 < value && value <= 100) return "Very Lound";
-  return "Unknown";
-}
-
-// ============================================================================
-// HELPER - Format time
-// ============================================================================
-
-String _formatTime(dynamic timeRaw) {
-  try {
-    DateTime dateTime;
-
-    if (timeRaw is Timestamp) {
-      dateTime = timeRaw.toDate();
-    } else if (timeRaw is String) {
-      dateTime = DateTime.parse(timeRaw);
-    } else {
-      return '--:--';
-    }
-
-    return DateFormat('h:mm a').format(dateTime);
-  } catch (e) {
-    return '--:--';
-  }
-}
-
-DateTime? _parseDateTime(dynamic timeRaw) {
-  try {
-    if (timeRaw is Timestamp) {
-      return timeRaw.toDate();
-    } else if (timeRaw is String) {
-      return DateTime.parse(timeRaw);
-    }
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
-
-// ============================================================================
-// FUNCTION 1: Get Date Today
-// ============================================================================
-
-/// ✅ ได้วันที่ เช่น "Thursday 14 November"
-/// ดึงข้อมูลเพียงครั้งเดียว
-Future<List<String>> getDateToday() async {
-  final data = await getLatestSleepSessionWithCache();
-  final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
-
-  final startTimeRaw = sessionData['startTime'];
-
-  try {
-    final dateTime = _parseDateTime(startTimeRaw);
-    if (dateTime == null) return ['--', '--'];
-    return [
-      DateFormat('EEEE d').format(dateTime),  // วันและวันที่
-      DateFormat('MMMM').format(dateTime),    // เดือน
-    ];
-  } catch (e) {
-    return ['--', '--'];
-  }
-}
-
-// ============================================================================
-// FUNCTION 2: Get Sleep Time (Start & End)
-// ============================================================================
-
-/// ✅ ได้เวลาเริ่มและสิ้นสุด เช่น "10:00 pm - 7:30 am"
-/// ดึงข้อมูลเพียงครั้งเดียว
-Future<Map<String, String>> getSleepStartEnd() async {
-  final data = await getLatestSleepSessionWithCache();
-  final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
-
-  final startTimeRaw = sessionData['startTime'];
-  final endTimeRaw = sessionData['endTime'];
-
-  return {
-    'startSession': _formatTime(startTimeRaw),
-    'endSession': _formatTime(endTimeRaw),
-  };
-}
-
-// ============================================================================
-// FUNCTION 3: Get Total Sleep Time
-// ============================================================================
-
-/// ✅ ได้ระยะเวลานอน เช่น "7:05"
-/// ดึงข้อมูลเพียงครั้งเดียว
-Future<String> getTotalSleepTime() async {
-  final data = await getLatestSleepSessionWithCache();
-  final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
-
-  final startTimeRaw = sessionData['startTime'];
-  final endTimeRaw = sessionData['endTime'];
-
-  try {
-    final start = _parseDateTime(startTimeRaw);
-    final end = _parseDateTime(endTimeRaw);
-
-    if (start == null || end == null) return '--:--';
-
-    final duration = end.difference(start);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes % 60;
-
-    return '$hours:${minutes.toString().padLeft(2, '0')}';
-  } catch (e) {
-    return '--:--';
-  }
-}
-
-// ============================================================================
-// FUNCTION 4: Get Category Details
-// ============================================================================
-
-/// ✅ ได้ข้อมูล category จาก session data
-/// apnea, quiet, lound, verylound count
-class CategoryDetail {
-  final Color color;
-  final int count;
-  final int start;
-  final int end;
-  final String name;
-
-  CategoryDetail({
-    required this.color,
-    required this.count,
-    required this.start,
-    required this.end,
-    required this.name,
-  });
-}
-
-Future<Map<String, CategoryDetail>> getCategoryDetails() async {
-  final data = await getLatestSleepSessionWithCache();
-  final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
-
-  // ✅ ดึงค่าจาก session data (ไม่ใช่จาก dots)
-  final apneaCount = sessionData['apnea'] as int? ?? 0;
-  final quietCount = sessionData['quiet'] as int? ?? 0;
-  final loundCount = sessionData['lound'] as int? ?? 0;
-  final veryLoundCount = sessionData['verylound'] as int? ?? 0;
-
-  return {
-    'apnea': CategoryDetail(
-      color: Colors.blue,
-      count: apneaCount,
-      start: 0,
-      end: 25,
-      name: 'Apnea',
-    ),
-    'quiet': CategoryDetail(
-      color: Colors.green,
-      count: quietCount,
-      start: 25,
-      end: 50,
-      name: 'Quiet',
-    ),
-    'lound': CategoryDetail(
-      color: Colors.orange,
-      count: loundCount,
-      start: 50,
-      end: 75,
-      name: 'Lound',
-    ),
-    'veryLound': CategoryDetail(
-      color: Colors.red,
-      count: veryLoundCount,
-      start: 75,
-      end: 100,
-      name: 'Very Lound',
-    ),
-  };
-}
-
-// ============================================================================
-// FUNCTION 5: Get Snore Statistics
-// ============================================================================
-
-/// ✅ SnoreStats - ข้อมูล snore ทั้งหมด
-class SnoreStats {
-  final String totalSnoreTime; // เช่น "1:23"
-  final double snorePercentage; // เช่น 15.5 (%)
-  final int totalSnoreDots; // จำนวน lound + very lound
-
-  SnoreStats({
-    required this.totalSnoreTime,
-    required this.snorePercentage,
-    required this.totalSnoreDots,
-  });
-}
-
-/// ✅ ได้สถิติการกรนทั้งหมด
-/// - เวลาการกรนทั้งหมด
-/// - เปอร์เซ็นการกรน
-/// ดึงข้อมูลเพียงครั้งเดียว
-Future<SnoreStats> getSnoreStatistics() async {
-  final data = await getLatestSleepSessionWithCache();
-  final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
-
-  // ✅ ดึงจาก session data
-  final loundCount = sessionData['lound'] as int? ?? 0;
-  final veryLoundCount = sessionData['verylound'] as int? ?? 0;
-  final totalSnoreDots = loundCount + veryLoundCount;
-
-  // ✅ คำนวณ total sleep time เพื่อหา percentage
-  final totalSleepStr = await getTotalSleepTime();
-  final totalSleepMinutes = _parseTimeToMinutes(totalSleepStr);
-
-  // ✅ แต่ละ dot = 1 วินาที → แปลงเป็นนาที
-  final snoreMinutes = totalSnoreDots / 60.0;
-  final snorePercentage =
-      totalSleepMinutes > 0 ? (snoreMinutes / totalSleepMinutes) * 100 : 0.0;
-
-  // ✅ แปลง snore minutes เป็น HH:MM
-  final snoreHours = (snoreMinutes ~/ 60).toInt();
-  // final snoreSecondsRemainder = // ไม่จำเป็นต้องใช้ เพราะต้องการเป็น HH:MM
-  //     ((snoreMinutes % 60) * 60).toInt() % 60;
-  final snoreMinutesRemainder = (snoreMinutes % 60).toInt();
-  final totalSnoreTime =
-      '$snoreHours:${snoreMinutesRemainder.toString().padLeft(2, '0')}';
-
-  return SnoreStats(
-    totalSnoreTime: totalSnoreTime,
-    snorePercentage: double.parse(snorePercentage.toStringAsFixed(1)),
-    totalSnoreDots: totalSnoreDots,
-  );
-}
-
-// Helper: แปลง "H:MM" เป็น minutes
-double _parseTimeToMinutes(String timeStr) {
-  try {
-    final parts = timeStr.split(':');
-    if (parts.length != 2) return 0;
-    final hours = int.tryParse(parts[0]) ?? 0;
-    final minutes = int.tryParse(parts[1]) ?? 0;
-    return hours * 60 + minutes.toDouble();
-  } catch (e) {
-    return 0;
-  }
-}
-
-// ============================================================================
-// FUNCTION 6: Get Graph Data (allDots & overviewDots)
-// ============================================================================
-
-/// ✅ ได้ข้อมูล graph
-/// - allDots: ข้อมูลทั้งหมด
-/// - overviewDots: ข้อมูล overview (ลด resolution)
-Future<Map<String, List<DotDataPoint>>> getGraphData() async {
-  final data = await getLatestSleepSessionWithCache();
-
-  return {
-    'allDots': data['allDots'] as List<DotDataPoint>? ?? [],
-    'overviewDots': data['overviewDots'] as List<DotDataPoint>? ?? [],
-  };
-}
-
-
-// ============================================================================
-// FUNCTION 7: Update Note
-// ============================================================================
-
-/// ✅ อัปเดต note (Max 100 คำ)
-/// ถ้าเปลี่ยนแปลง: update + clear cache
-/// ถ้าไม่เปลี่ยน: ไม่ update
-Future<bool> updateSessionNote(String newNote) async {
-  try {
-    // Validate max 100 words
-    final wordCount = newNote.trim().isEmpty
-        ? 0
-        : newNote.trim().split(RegExp(r'\s+')).length;
-    if (wordCount > 100) {
-      print('❌ Note exceeds 100 words. Current: $wordCount words');
+      print('Note updated successfully');
+      return true;
+    } catch (e) {
+      print('Error updating note: $e');
       return false;
     }
+  }
 
+  double _parseTimeToMinutes(String timeStr) {
+    try {
+      final parts = timeStr.split(':');
+      if (parts.length != 2) return 0;
+      final hours = int.tryParse(parts[0]) ?? 0;
+      final minutes = int.tryParse(parts[1]) ?? 0;
+      return hours * 60 + minutes.toDouble();
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // ========================================================================
+  // MANUAL CHECK FOR NEW SESSION
+  // ========================================================================
+
+  // ✅ เช็คว่ามี session ใหม่หรือไม่ (ไม่ใช้ realtime listener)
+  Future<bool> hasNewSession() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return false;
+
+      final userEmail = user.email;
+      final firestore = FirebaseFirestore.instance;
+
+      final sessionsQuery = await firestore
+          .collection('General user')
+          .doc(userEmail)
+          .collection('sleepsession')
+          .orderBy('id', descending: true)
+          .limit(1)
+          .get();
+
+      if (sessionsQuery.docs.isEmpty) return false;
+
+      final latestSessionId = sessionsQuery.docs.first.get('id') as int;
+
+      // เปรียบเทียบกับ sessionId ปัจจุบัน
+      return _sessionId != latestSessionId;
+    } catch (e) {
+      print('Error checking new session: $e');
+      return false;
+    }
+  }
+
+  // ========================================================================
+  // REALTIME LISTENER (Optional - ไม่ใช้ใน Manual mode)
+  // ========================================================================
+
+  StreamSubscription<QuerySnapshot>? _sleepSessionListener;
+
+  void startListeningToSessions({VoidCallback? onUpdate}) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return false;
+    if (user == null) return;
 
     final userEmail = user.email;
     final firestore = FirebaseFirestore.instance;
 
-    // ดึง session ล่าสุด
-    final sessionsQuery = await firestore
+    _sleepSessionListener?.cancel();
+
+    _sleepSessionListener = firestore
         .collection('General user')
         .doc(userEmail)
         .collection('sleepsession')
         .orderBy('id', descending: true)
         .limit(1)
-        .get();
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.docs.isEmpty) return;
 
-    if (sessionsQuery.docs.isEmpty) return false;
+      final latestSessionId = snapshot.docs.first.get('id') as int?;
 
-    final latestSession = sessionsQuery.docs.first;
-    final oldNote = latestSession.get('note') as String? ?? '';
-
-    // ✅ ตรวจสอบการเปลี่ยนแปลง
-    if (oldNote == newNote) {
-      print('ℹ️ Note unchanged. No update needed.');
-      return true;
-    }
-
-    // ✅ Update
-    await latestSession.reference.update({'note': newNote});
-
-    // ✅ Clear cache
-    SleepDataCache.clear();
-
-    print('✓ Note updated successfully');
-    return true;
-  } catch (e) {
-    print('❌ Error updating note: $e');
-    return false;
+      if (_sessionId != latestSessionId) {
+        clearCache();
+        await loadLatestSession();
+        if (onUpdate != null) onUpdate();
+      }
+    });
   }
+
+  void stopListening() {
+    _sleepSessionListener?.cancel();
+    _sleepSessionListener = null;
+  }
+}
+
+// ============================================================================
+// LEGACY FUNCTIONS - Wrapper สำหรับ backward compatibility
+// ============================================================================
+
+Future<List<String>> getDateToday() async {
+  final controller = SleepController();
+  await controller.loadLatestSession();
+  return controller.getDateToday();
+}
+
+Future<Map<String, String>> getSleepStartEnd() async {
+  final controller = SleepController();
+  await controller.loadLatestSession();
+  return controller.getSleepStartEnd();
+}
+
+Future<String> getTotalSleepTime() async {
+  final controller = SleepController();
+  await controller.loadLatestSession();
+  return controller.getTotalSleepTime();
+}
+
+Future<Map<String, CategoryDetail>> getCategoryDetails() async {
+  final controller = SleepController();
+  await controller.loadLatestSession();
+  return controller.getCategoryDetails();
+}
+
+Future<SnoreStats> getSnoreStatistics() async {
+  final controller = SleepController();
+  await controller.loadLatestSession();
+  return controller.getSnoreStatistics();
+}
+
+Future<Map<String, List<DotDataPoint>>> getGraphData() async {
+  final controller = SleepController();
+  await controller.loadLatestSession();
+  return controller.getGraphData();
+}
+
+Future<bool> updateSessionNote(String newNote) async {
+  final controller = SleepController();
+  return controller.updateSessionNote(newNote);
 }
 
 // ============================================================================
@@ -568,9 +522,9 @@ class DotDataPoint {
   Color get categoryColor {
     switch (category) {
       case "Apnea":
-        return Colors.blue; // **แก้ไข:** ใช้ Colors.blue ตาม CategoryDetail
+        return Colors.blue;
       case "Quiet":
-        return Colors.green; // **แก้ไข:** ใช้ Colors.green ตาม CategoryDetail
+        return Colors.green;
       case "Lound":
         return Colors.orange;
       case "Very Lound":
@@ -579,27 +533,54 @@ class DotDataPoint {
         return Colors.grey;
     }
   }
+}
 
+class CategoryDetail {
+  final Color color;
+  final int count;
+  final int start;
+  final int end;
+  final String name;
+
+  CategoryDetail({
+    required this.color,
+    required this.count,
+    required this.start,
+    required this.end,
+    required this.name,
+  });
+}
+
+class SnoreStats {
+  final String totalSnoreTime;
+  final double snorePercentage;
+  final int totalSnoreDots;
+
+  SnoreStats({
+    required this.totalSnoreTime,
+    required this.snorePercentage,
+    required this.totalSnoreDots,
+  });
 }
 
 List<Color> getcategoryColorList() {
-  final corlors = [
+  final colors = [
     Colors.blue,
     Colors.green,
     Colors.orange,
     Colors.red
   ];
-  return corlors;
+  return colors;
 }
 
 Color colorCal(double y) {
   if (0 <= y && y < 25) {
     return getcategoryColorList()[0];
-  }else if (25 <= y && y < 50) {
+  } else if (25 <= y && y < 50) {
     return getcategoryColorList()[1];
-  }else if (50 <= y && y < 75) {
+  } else if (50 <= y && y < 75) {
     return getcategoryColorList()[2];
-  }else if (75 <= y && y < 100) {
+  } else if (75 <= y && y < 100) {
     return getcategoryColorList()[3];
   }
 
@@ -607,70 +588,76 @@ Color colorCal(double y) {
 }
 
 // ============================================================================
-// GRAPH WIDGET WITH MODE TOGGLE
+// GRAPH WIDGET - ใช้ Controller แทน FutureBuilder
 // ============================================================================
 
-// ✅ SINGLE NORMAL MODE - No mode toggle
 class GraphBuilder extends StatefulWidget {
   @override
   State<GraphBuilder> createState() => _GraphBuilderState();
 }
 
 class _GraphBuilderState extends State<GraphBuilder> {
+  final controller = SleepController();
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await controller.loadLatestSession();
+    } catch (e) {
+      _errorMessage = 'Error loading data: $e';
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: getLatestSleepSessionWithCache(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล: ${snapshot.error}'),
-          );
-        }
+    if (_errorMessage != null) {
+      return Center(child: Text(_errorMessage!));
+    }
 
-        final data = snapshot.data;
-        if (data == null || data['allDots'] == null) {
-          return const Center(child: Text('ไม่พบข้อมูล'));
-        }
+    if (!controller.isLoaded || controller.allDots.isEmpty) {
+      return const Center(child: Text('No data available'));
+    }
 
-        final allDots = data['allDots'] as List<DotDataPoint>? ?? [];
-        final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
-
-        if (allDots.isEmpty) {
-          return const Center(child: Text('ไม่มีข้อมูล'));
-        }
-
-        return Column(
-          // this graph shit
-          children: [
-            Padding(
-              padding: EdgeInsetsGeometry.symmetric(vertical: 0),
-              child: _buildGraphWidget(
-                context: context,
-                dots: allDots,
-                sessionData: sessionData,
-              ),
-            ),
-
-            // this shit
-            // const SizedBox(height: 24),
-            // _buildLegendSection(),
-          ],
-        );
-      },
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 0),
+          child: buildGraphWidget(
+            context: context,
+            dots: controller.allDots,
+            sessionData: controller.sessionData ?? {},
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ------------------------------
-//      Build Graph
-// ------------------------------
+// ============================================================================
+// BUILD GRAPH WIDGET
+// ============================================================================
 
-Widget _buildGraphWidget({
+Widget buildGraphWidget({
   required BuildContext context,
   required List<DotDataPoint> dots,
   required Map<String, dynamic> sessionData,
@@ -678,314 +665,140 @@ Widget _buildGraphWidget({
   if (dots.isEmpty) {
     return const Padding(
       padding: EdgeInsets.all(16),
-      child: Text('ยังไม่มีข้อมูล'),
+      child: Text('No data available'),
     );
   }
 
   final mediaWidth = MediaQuery.of(context).size.width;
-  final graphWidth = math.max(mediaWidth - 32, 320.0);
 
-  // ✅ Single normal mode: scrollable if data is wide
-  final chart = SizedBox(
-    width: graphWidth,
-    height: 300,
-    child: LineChart(
-      _buildChartData(
-        dots: dots,
-        sessionData: sessionData,
-        isCurved: false,
-      ),
-    ),
-  );
+  final controller = SleepController();
+  final startTimeRaw = sessionData['startTime'];
+  final endTimeRaw = sessionData['endTime'];
+  final startDateTime = controller._parseDateTime(startTimeRaw);
+  final endDateTime = controller._parseDateTime(endTimeRaw);
 
-  // If data is wide, make it horizontally scrollable
-  if (dots.length > 500) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: SingleChildScrollView(
-        clipBehavior: Clip.none,
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: SizedBox(
-          width: math.max(graphWidth, dots.length * 2.0),
-          height: 300,
-          child: LineChart(
-            _buildChartData(
-              dots: dots,
-              sessionData: sessionData,
-              isCurved: false,
-            ),
-          ),
-        ),
-      ),
-    );
+  int numBottomTitles = 1;
+  if (startDateTime != null && endDateTime != null) {
+    final totalMinutes = endDateTime.difference(startDateTime).inMinutes;
+    numBottomTitles = (totalMinutes / 30).ceil() + 1;
+  }
+
+  double minGraphWidth = math.max(mediaWidth - 32, 320);
+  double graphWidth;
+
+  if (numBottomTitles < 6) {
+    graphWidth = minGraphWidth;
+  } else {
+    graphWidth = math.max(minGraphWidth, numBottomTitles * 60.0);
   }
 
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: chart,
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: SingleChildScrollView(
+      clipBehavior: Clip.none,
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: SizedBox(
+        width: graphWidth,
+        height: 275,
+        child: LineChart(
+          _buildChartData(
+            dots: dots,
+            sessionData: sessionData,
+            isCurved: false,
+          ),
+        ),
+      ),
+    ),
   );
 }
+
+// ============================================================================
+// BUILD CHART DATA
+// ============================================================================
 
 LineChartData _buildChartData({
   required List<DotDataPoint> dots,
   required Map<String, dynamic> sessionData,
   bool isCurved = false,
 }) {
-  // Parse DateTime from session data
+  final controller = SleepController();
   final startTimeRaw = sessionData['startTime'];
   final endTimeRaw = sessionData['endTime'];
-  final startsess = _parseDateTime(startTimeRaw);
-  final endsess = _parseDateTime(endTimeRaw);
+  final startDateTime = controller._parseDateTime(startTimeRaw);
+  final endDateTime = controller._parseDateTime(endTimeRaw);
 
-  if (startsess == null || endsess == null || dots.isEmpty) {
-    // Fallback to simple sequential mapping if no time data
-    final spots = dots
-        .asMap()
-        .entries
-        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.y))
-        .toList();
-    return _buildChartDataWithSpots(spots, dots, {}, [], isCurved);
+  if (startDateTime == null || endDateTime == null || dots.isEmpty) {
+    return LineChartData(
+      minX: 0,
+      maxX: 1,
+      minY: 0,
+      maxY: 100,
+      lineBarsData: [
+        LineChartBarData(spots: [const FlSpot(0, 50)])
+      ],
+    );
   }
 
-  // Calculate total duration
-  final totalDurationMinutes = endsess.difference(startsess).inMinutes.toDouble();
+  final totalMinutes = endDateTime.difference(startDateTime).inMinutes;
 
-  // Group dots into 30-minute intervals and create aligned positions
-  final Map<int, DateTime> indexToTime = {};
-  final Map<int, double> indexToAlignedX = {};
   final List<FlSpot> spots = [];
-  
-  // Calculate 30-minute interval boundaries
-  final List<DateTime> intervalBoundaries = [];
-  DateTime currentInterval = DateTime(
-    startsess.year,
-    startsess.month,
-    startsess.day,
-    startsess.hour,
-    (startsess.minute ~/ 30) * 30, // Round down to nearest :00 or :30
-    0,
-  );
-  
-  while (currentInterval.isBefore(endsess) || currentInterval.isAtSameMomentAs(endsess)) {
-    intervalBoundaries.add(currentInterval);
-    currentInterval = currentInterval.add(const Duration(minutes: 30));
-  }
-  
-  // If end time doesn't align with interval, add it
-  if (intervalBoundaries.isEmpty || intervalBoundaries.last.isBefore(endsess)) {
-    intervalBoundaries.add(endsess);
+  if (dots.isNotEmpty) {
+    for (int i = 0; i < dots.length; i++) {
+      final fraction = (dots.length > 1) ? i / (dots.length - 1) : 0.0;
+      final xPos = fraction * totalMinutes;
+      spots.add(FlSpot(xPos, dots[i].y));
+    }
   }
 
-  // Map each dot to its time and aligned x-position
-  // Track which interval each dot belongs to and ensure first dot aligns with boundary
-  final Map<int, int> dotToIntervalIndex = {};
-  final Map<int, List<int>> intervalToDots = {};
-  
-  // First pass: assign dots to intervals
-  for (int i = 0; i < dots.length; i++) {
-    // Calculate time for this dot
-    final fraction = (dots.length > 1) ? i / (dots.length - 1) : 0.0;
-    final minutesOffset = fraction * totalDurationMinutes;
-    final dotTime = startsess.add(Duration(minutes: minutesOffset.toInt()));
-    indexToTime[i] = dotTime;
-    
-    // Find which 30-minute interval this dot belongs to
-    int intervalIndex = 0;
-    for (int j = 0; j < intervalBoundaries.length - 1; j++) {
-      if (dotTime.isBefore(intervalBoundaries[j + 1])) {
-        intervalIndex = j;
-        break;
-      } else if (dotTime.isAtSameMomentAs(intervalBoundaries[j + 1])) {
-        // If exactly at boundary, assign to next interval
-        intervalIndex = j + 1;
-        break;
-      }
-      intervalIndex = j + 1;
-    }
-    // Clamp to valid range
-    if (intervalIndex >= intervalBoundaries.length) {
-      intervalIndex = intervalBoundaries.length - 1;
-    }
-    
-    dotToIntervalIndex[i] = intervalIndex;
-    intervalToDots.putIfAbsent(intervalIndex, () => []).add(i);
-  }
-  
-  // Second pass: calculate aligned x-positions
-  // First dot in each interval aligns with interval start
-  for (int i = 0; i < dots.length; i++) {
-    final intervalIndex = dotToIntervalIndex[i]!;
-    final intervalStartX = intervalIndex.toDouble();
-    final intervalEndX = (intervalIndex + 1).toDouble();
-    
-    final dotTime = indexToTime[i]!;
-    final intervalStartTime = intervalBoundaries[intervalIndex];
-    final intervalEndTime = intervalIndex < intervalBoundaries.length - 1
-        ? intervalBoundaries[intervalIndex + 1]
-        : endsess;
-    
-    // Check if this is the first dot in this interval
-    final dotsInInterval = intervalToDots[intervalIndex]!;
-    final isFirstInInterval = dotsInInterval.first == i;
-    
-    double alignedX;
-    if (isFirstInInterval) {
-      // First dot in interval aligns exactly with interval start
-      alignedX = intervalStartX;
-    } else if (intervalIndex < intervalBoundaries.length - 1) {
-      // Calculate position within current interval
-      final intervalDuration = intervalEndTime.difference(intervalStartTime).inMinutes;
-      if (intervalDuration > 0) {
-        final timeInInterval = dotTime.difference(intervalStartTime).inMinutes;
-        final fractionInInterval = timeInInterval / intervalDuration;
-        // Ensure we don't go beyond interval end
-        final clampedFraction = fractionInInterval.clamp(0.0, 1.0);
-        alignedX = intervalStartX + (clampedFraction * (intervalEndX - intervalStartX));
-      } else {
-        alignedX = intervalStartX;
-      }
-    } else {
-      // Last interval - align with end
-      alignedX = intervalEndX;
-    }
-    
-    indexToAlignedX[i] = alignedX;
-    spots.add(FlSpot(alignedX, dots[i].y));
-  }
-
-  return _buildChartDataWithSpots(
-    spots, 
-    dots, 
-    indexToTime, 
-    intervalBoundaries,
-    isCurved,
-  );
-}
-
-LineChartData _buildChartDataWithSpots(
-  List<FlSpot> spots,
-  List<DotDataPoint> dots,
-  Map<int, DateTime> indexToTime,
-  List<DateTime> intervalBoundaries,
-  bool isCurved,
-) {
-  // Pre-calculate all label positions and times to avoid duplicates
   final Map<double, String> labelPositions = {};
-  final Set<String> usedLabels = {}; // Track used labels to prevent duplicates
-  
-  if (intervalBoundaries.isNotEmpty) {
-    // Add labels at each interval boundary and :30 marks
-    for (int i = 0; i < intervalBoundaries.length; i++) {
-      final boundary = intervalBoundaries[i];
-      
-      // Determine if this boundary is at :00 or :30
-      final isAtHalfHour = boundary.minute == 30;
-      final isAtFullHour = boundary.minute == 0;
-      
-      if (isAtFullHour || isAtHalfHour) {
-        // Use the actual boundary time
-        final label = DateFormat.Hm().format(boundary);
-        
-        // Only add if we haven't used this label before
-        if (!usedLabels.contains(label)) {
-          labelPositions[i.toDouble()] = label;
-          usedLabels.add(label);
-        }
-      } else {
-        // Round to nearest :00
-        final roundedTime = DateTime(
-          boundary.year,
-          boundary.month,
-          boundary.day,
-          boundary.hour,
-          0,
-          0,
-        );
-        final label = DateFormat.Hm().format(roundedTime);
-        
-        if (!usedLabels.contains(label)) {
-          labelPositions[i.toDouble()] = label;
-          usedLabels.add(label);
-        }
-      }
-      
-      // Add :30 label between boundaries if there's a next boundary
-      if (i < intervalBoundaries.length - 1) {
-        final nextBoundary = intervalBoundaries[i + 1];
-        final duration = nextBoundary.difference(boundary).inMinutes;
-        
-        if (duration >= 30) {
-          // Calculate :30 time from current boundary
-          final halfTime = DateTime(
-            boundary.year,
-            boundary.month,
-            boundary.day,
-            boundary.hour,
-            boundary.minute,
-            0,
-          ).add(Duration(minutes: 30));
-          
-          // Only add if it doesn't exceed next boundary
-          if (halfTime.isBefore(nextBoundary) || halfTime.isAtSameMomentAs(nextBoundary)) {
-            final halfLabel = DateFormat.Hm().format(halfTime);
-            
-            // Only add if we haven't used this label before
-            if (!usedLabels.contains(halfLabel)) {
-              labelPositions[i.toDouble() + 0.5] = halfLabel;
-              usedLabels.add(halfLabel);
-            }
-          }
-        }
-      }
-    }
+  for (int min = 0; min <= totalMinutes; min += 30) {
+    final labelTime = startDateTime.add(Duration(minutes: min));
+    final label = DateFormat('H:mm').format(labelTime);
+    labelPositions[min.toDouble()] = label;
   }
   
-  // final colors = dots.map((d) => d.categoryColor).toList();
+  final endTimeLabel = DateFormat('H:mm').format(endDateTime);
+  labelPositions[totalMinutes.toDouble()] = endTimeLabel;
+
   final List<Color> gradientColors = getcategoryColorList();
-  // final gradientColors = colors.isEmpty
-  //     ? [Colors.blue, Colors.blue]
-  //     : colors.length == 1
-  //         ? [colors.first, colors.first]
-  //         : colors;
-  // final stops = gradientColors.length <= 1
-  //     ? const [0.0, 1.0]
-  //     : List<double>.generate(
-  //         gradientColors.length,
-  //         (i) => i / (gradientColors.length - 1),
-  //       );
 
   return LineChartData(
-    clipData: FlClipData.none(),
-
-    gridData: FlGridData(show: true),
+    gridData: FlGridData(
+      show: true,
+      drawHorizontalLine: true,
+      horizontalInterval: 25,
+      getDrawingHorizontalLine: (value) {
+        return FlLine(
+          color: Colors.black.withOpacity(0.2),
+          strokeWidth: 1,
+          dashArray: [5],
+        );
+      },
+      getDrawingVerticalLine: (value) {
+        return FlLine(
+          strokeWidth: 0,
+        );
+      },
+    ),
     titlesData: FlTitlesData(
       topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
       rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 28,
-          interval: 0.5, // Show label every 0.5 units (30-minute intervals)
+          reservedSize: 32,
+          interval: 30,
           getTitlesWidget: (value, meta) {
-            // Round to nearest 0.5 to check if we're at a :00 or :30 mark
-            final roundedValue = (value * 2).round() / 2.0;
-            if ((value - roundedValue).abs() > 0.05) {
-              return const SizedBox.shrink();
-            }
-            
-            // Check if we have a pre-calculated label for this position
-            if (labelPositions.containsKey(roundedValue)) {
-              final label = labelPositions[roundedValue]!;
+            if (labelPositions.containsKey(value)) {
               return Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  label,
-                  style: const TextStyle(fontSize: 10),
+                  labelPositions[value]!,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
                 ),
               );
             }
-            
             return const SizedBox.shrink();
           },
         ),
@@ -993,11 +806,9 @@ LineChartData _buildChartDataWithSpots(
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 32,
+          reservedSize: 40,
+          interval: 25,
           getTitlesWidget: (value, meta) {
-            if (value % 25 != 0) {
-              return const SizedBox.shrink();
-            }
             return Text(
               value.toInt().toString(),
               style: const TextStyle(fontSize: 10),
@@ -1007,8 +818,8 @@ LineChartData _buildChartDataWithSpots(
       ),
     ),
     borderData: FlBorderData(show: true),
-    minX: spots.isEmpty ? 0 : spots.map((s) => s.x).reduce(math.min),
-    maxX: spots.isEmpty ? 0 : spots.map((s) => s.x).reduce(math.max),
+    minX: 0,
+    maxX: totalMinutes.toDouble(),
     minY: 0,
     maxY: 100,
     lineBarsData: [
@@ -1019,7 +830,6 @@ LineChartData _buildChartDataWithSpots(
           colors: gradientColors,
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          // stops: [0,0.25,0.5,0.75,1.0],
         ),
         barWidth: 2.5,
         dotData: FlDotData(show: false),
@@ -1030,32 +840,33 @@ LineChartData _buildChartDataWithSpots(
         ),
       ),
     ],
-
     lineTouchData: LineTouchData(
       enabled: true,
       touchTooltipData: LineTouchTooltipData(
         getTooltipItems: (touchedSpots) {
           return touchedSpots.map((spot) {
-            // Find the original dot index from the spot's x position
-            int originalIndex = 0;
-            double minDistance = double.infinity;
+            int closestIndex = 0;
+            double minDist = double.infinity;
             for (int i = 0; i < spots.length; i++) {
-              final distance = (spots[i].x - spot.x).abs();
-              if (distance < minDistance) {
-                minDistance = distance;
-                originalIndex = i;
+              final dist = (spots[i].x - spot.x).abs();
+              if (dist < minDist) {
+                minDist = dist;
+                closestIndex = i;
               }
             }
-            
-            String label = '--:--';
-            if (indexToTime.containsKey(originalIndex)) {
-              final time = indexToTime[originalIndex]!;
-              label = DateFormat.Hm().format(time);
-            }
-            
+
+            String timeLabel = '--:--';
+            final minutesOffset = spots[closestIndex].x.toInt();
+            final labelTime =
+                startDateTime.add(Duration(minutes: minutesOffset));
+            timeLabel = DateFormat('H:mm').format(labelTime);
+
             return LineTooltipItem(
-              '$label : ${spot.y.toStringAsFixed(1)}',
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              'at $timeLabel : ${spot.y.toStringAsFixed(1)} lound',
+              const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             );
           }).toList();
         },
@@ -1064,13 +875,11 @@ LineChartData _buildChartDataWithSpots(
         },
         tooltipBorderRadius: BorderRadius.circular(8),
       ),
-
       getTouchLineStart: (barData, spotIndex) => 0,
-
       getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
         return spotIndexes.map((index) {
           return TouchedSpotIndicatorData(
-            FlLine( 
+            FlLine(
               color: colorCal(barData.spots[index].y),
               strokeWidth: 2,
               dashArray: [4, 4],
@@ -1079,13 +888,13 @@ LineChartData _buildChartDataWithSpots(
               show: true,
               getDotPainter: (spot, percent, barData, index) {
                 return FlDotCirclePainter(
-                  radius:4,                       
-                  color: colorCal(spot.y),         
-                  strokeWidth:1,
-                  strokeColor: Colors.white,      
+                  radius: 4,
+                  color: colorCal(spot.y),
+                  strokeWidth: 1,
+                  strokeColor: Colors.white,
                 );
               },
-            ), 
+            ),
           );
         }).toList();
       },
@@ -1093,7 +902,9 @@ LineChartData _buildChartDataWithSpots(
   );
 }
 
-// this shit
+// ============================================================================
+// LEGEND
+// ============================================================================
 
 Widget _buildLegendSection() {
   return Column(
@@ -1116,7 +927,6 @@ Widget _buildLegendSection() {
     ],
   );
 }
-
 
 class _LegendItem extends StatelessWidget {
   final String label;

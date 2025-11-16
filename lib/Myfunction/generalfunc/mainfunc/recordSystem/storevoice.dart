@@ -1,4 +1,3 @@
-
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/findmaxId.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/advanced_peak_detection.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/putsession.dart';
@@ -6,8 +5,6 @@ import 'package:nornsabai/model/data_model/shortVoiceModel.dart';
 
 
 Map<String,dynamic> sessionTemStore = createSession();
-// sessionTemStore["sleepdetail"] = <String, dynamic>{};
-
 
 List<double> listOfAllShort = [];
 
@@ -66,7 +63,7 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
       };
 
         int minutecount = 0;
-        // ✅ Process 30-minute chunks (2 per hour: 0-30min, 30-60min)
+        // Process 30-minute chunks (2 per hour: 0-30min, 30-60min)
         while (listOfAllShort.length >= 1800) {
           if (minutecount == 2) {
             minutecount = 0;
@@ -74,20 +71,19 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
           };
           minutecount++;
 
-          // ✅ Very strict peak detection (max 3 peaks per 30-min interval) - only extremely significant peaks
+          // Very strict peak detection (max 3 peaks per 30-min interval)
           final chunk = listOfAllShort.sublist(0, 1800 + 1);
           final peakResult = detectPeaksAdvanced(
             chunk,
-            windowSize: 10, // ✅ Larger window for better context
-            sdMultiplier: 10.0, // ✅ 2.5x increase (4.0 → 10.0) - requires very strong deviation
-            minProminence: 20.0, // ✅ 2.5x increase (8.0 → 20.0) - requires extremely high prominence
-            slopeThreshold: 3.75, // ✅ 2.5x increase (1.5 → 3.75) - requires very steep changes
+            windowSize: 10,
+            sdMultiplier: 10.0,
+            minProminence: 20.0,
+            slopeThreshold: 3.75,
             adaptiveThreshold: true,
-            maxPeaksPerInterval: 3, // ✅ Reduced to 3 - only top 3 most significant peaks
+            maxPeaksPerInterval: 3,
           );
 
           // Build dot list: ensure first and last are included
-          // ✅ Only store filtered values (top 3 peaks + start/end) in dot list
           List<double> dotList = List.from(peakResult.values);
           if (dotList.isEmpty || dotList.first != chunk.first) {
             dotList.insert(0, chunk.first);
@@ -98,10 +94,9 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
 
           peakcount += dotList.length;
 
-          // ✅ Store only dot list (no separate metadata to save database space)
           sessionTemStore["sleepdetail"]["hour${hourscount}"]["minute30-${minutecount}"] = {
             "id": minutecount,
-            "dot": dotList, // ✅ Contains: top 3 most significant peaks + start/end values only
+            "dot": dotList,
           };
           listOfAllShort.removeRange(0, 1800 + 1);
         }
@@ -112,9 +107,6 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     print("TOTAL : ${totalsession}");
     print("All dots : ${peakcount}");
     print("----------------------------------");
-    
-    // String prettyJson = (JsonEncoder.withIndent(' ').convert(sessionTemStore)).toString();
-    // debugPrint(prettyJson, wrapWidth: 1024);
 
     // reset valible
     apnea = 0;
@@ -150,7 +142,7 @@ Map<String,dynamic> createSession() {
     "verylound": null,
     "note": "",
     "sleepdetail": <String, dynamic>{
-      "remainer": <String, dynamic>{}
+      "remainer": <List<double>>[] 
     }
   };
   return sessionTemStore;
@@ -158,23 +150,23 @@ Map<String,dynamic> createSession() {
 
 // Format remainer function - 30-minute intervals
 void formatRemainder() {
-  int minute30Count = 0;
   int remainerID = 0;
+  List<double> allRemainerDots = []; // ✅ FIXED: รวมทุก dots จาก remainer เข้าไว้ที่เดียว
 
-  // ✅ Process remainer in 30-minute chunks (1800 seconds)
+  // Process remainer in 30-minute chunks (1800 seconds)
   while (listOfAllShort.length >= 1800) {
     remainerID++;
     final chunk = listOfAllShort.sublist(0, 1800 + 1);
     
-    // ✅ Very strict peak detection (max 3 peaks per 30-min interval) - only extremely significant peaks
+    // Very strict peak detection (max 3 peaks per 30-min interval)
     final peakResult = detectPeaksAdvanced(
       chunk,
-      windowSize: 10, // ✅ Larger window for better context
-      sdMultiplier: 10.0, // ✅ 2.5x increase (4.0 → 10.0) - requires very strong deviation
-      minProminence: 20.0, // ✅ 2.5x increase (8.0 → 20.0) - requires extremely high prominence
-      slopeThreshold: 3.75, // ✅ 2.5x increase (1.5 → 3.75) - requires very steep changes
+      windowSize: 10,
+      sdMultiplier: 10.0,
+      minProminence: 20.0,
+      slopeThreshold: 3.75,
       adaptiveThreshold: true,
-      maxPeaksPerInterval: 3, // ✅ Reduced to 3 - only top 3 most significant peaks
+      maxPeaksPerInterval: 3,
     );
 
     List<double> remianerMinute30 = List.from(peakResult.values);
@@ -187,27 +179,24 @@ void formatRemainder() {
 
     peakcount += remianerMinute30.length;
 
-    minute30Count++;
-    // ✅ Store only dot list (no separate metadata to save database space)
-    sessionTemStore["sleepdetail"]["remainer"]["minute30-${minute30Count}"] = {
-      "id": remainerID,
-      "dot": remianerMinute30, // ✅ Contains: top 5 most significant peaks + start/end values only
-    };
+    // ✅ FIXED: Add all dots ไปยัง allRemainerDots
+    allRemainerDots.addAll(remianerMinute30);
+    
     listOfAllShort.removeRange(0, 1800 + 1);
   }
 
+  // ✅ FIXED: Process remaining seconds
   if (listOfAllShort.length > 0) {
     final chunk = listOfAllShort.sublist(0, listOfAllShort.length);
     
-    // ✅ Very strict peak detection for remaining seconds - only extremely significant peaks
     final peakResult = detectPeaksAdvanced(
       chunk,
-      windowSize: 10, // ✅ Larger window for better context
-      sdMultiplier: 10.0, // ✅ 2.5x increase (4.0 → 10.0) - requires very strong deviation
-      minProminence: 20.0, // ✅ 2.5x increase (8.0 → 20.0) - requires extremely high prominence
-      slopeThreshold: 3.75, // ✅ 2.5x increase (1.5 → 3.75) - requires very steep changes
+      windowSize: 10,
+      sdMultiplier: 10.0,
+      minProminence: 20.0,
+      slopeThreshold: 3.75,
       adaptiveThreshold: true,
-      maxPeaksPerInterval: 3, // ✅ Only top 3 most significant peaks
+      maxPeaksPerInterval: 3,
     );
 
     List<double> remianerSecond = List.from(peakResult.values);
@@ -220,13 +209,12 @@ void formatRemainder() {
 
     peakcount += remianerSecond.length;
 
-    // ✅ Store only dot list (no separate metadata to save database space)
-    sessionTemStore["sleepdetail"]["remainer"]["seconds"] = {
-      "dot": remianerSecond, // ✅ Contains: top 5 most significant peaks + start/end values only
-    };
+    // ✅ FIXED: Add remaining dots ไปยัง allRemainerDots
+    allRemainerDots.addAll(remianerSecond);
+    
     listOfAllShort.clear();
   }
+
+  // ✅ FIXED: Store all remainer dots รวมกัน
+  sessionTemStore["sleepdetail"]["remainer"] = allRemainerDots;
 }
-
-
-
