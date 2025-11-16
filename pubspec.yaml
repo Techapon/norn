@@ -50,7 +50,7 @@ dependencies:
   # dialog
   
   # charts
-  fl_chart: ^0.65.0
+  fl_chart: ^1.1.1
 
   # image picker
   image_picker: ^1.1.2

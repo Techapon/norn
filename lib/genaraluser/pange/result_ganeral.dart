@@ -36,17 +36,13 @@ class _ResultGaneralState extends State<ResultGaneral> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              GraphWithModeToggle(),
-            ],
-          ),
-        ),
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text("444"),
+          GraphBuilder(),
+        ],
       ),
     );
   }

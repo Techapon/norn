@@ -60,24 +60,23 @@ Future<bool> addSleepSessionData({
             .collection('sleepdetail')
             .doc(hourKey); // hour1, hour2, ...
 
-        final hourData = Map<String, dynamic>.from(hourValue);
         final minutes = Map<String, dynamic>.from(hourValue)
           ..removeWhere((key, value) => key == 'id');
 
         // 3. เพิ่ม hour document
         batch.set(hourDocRef, {'id': hourValue['id'] ?? 0});
 
-        // 4. วนลูปผ่าน minute (minute10-1, minute10-2, ...)
+        // 4. วนลูปผ่าน minute (minute30-1, minute30-2, ...)
         minutes.forEach((minuteKey, minuteValue) {
           if (minuteValue is Map<String, dynamic>) {
             final minuteDocRef = hourDocRef
                 .collection('minute')
-                .doc(minuteKey); // minute10-1, minute10-2, ...
+                .doc(minuteKey); // minute30-1, minute30-2, ...
 
-            // 5. เพิ่ม minute document
+            // 5. เพิ่ม minute document (only dot list - no separate metadata)
             batch.set(minuteDocRef, {
               'id': minuteValue['id'] ?? 0,
-              'dot': minuteValue['dot'] ?? [],
+              'dot': minuteValue['dot'] ?? [], // ✅ Only dot list (contains filtered peaks + start/end)
             });
           }
         });
@@ -93,19 +92,18 @@ Future<bool> addSleepSessionData({
 
        List<dynamic> secondsData = [];
 
-
-      // วนลูปผ่าน minute10, minute, seconds
+      // วนลูปผ่าน minute30, seconds
       remainer.forEach((key, value) {
         if (value is Map<String, dynamic>) {
-          if (key.startsWith('minute10-')) {
-            // minute10 subcollection
-            final minute10DocRef = remainerDocRef
-                .collection('minute10')
+          if (key.startsWith('minute30-')) {
+            // minute30 subcollection
+            final minute30DocRef = remainerDocRef
+                .collection('minute30')
                 .doc(key);
 
-            batch.set(minute10DocRef, {
+            batch.set(minute30DocRef, {
               'id': value['id'] ?? 0,
-              'dot': value['dot'] ?? [],
+              'dot': value['dot'] ?? [], // ✅ Only dot list (contains filtered peaks + start/end)
             });
           } 
           
@@ -121,7 +119,7 @@ Future<bool> addSleepSessionData({
             .doc('seconds');
 
         batch.set(secondsDocRef, {
-          'dot': secondsData,
+          'dot': secondsData, // ✅ Only dot list (contains filtered peaks + start/end)
         });
       }
       

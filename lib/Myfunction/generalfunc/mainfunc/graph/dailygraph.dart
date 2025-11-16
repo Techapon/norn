@@ -148,33 +148,21 @@ Future<List<DotDataPoint>> _fetchAllDots(
       .get();
 
   if (remainerDoc.exists) {
-    final minute10Docs = await remainerDoc.reference
-        .collection('minute10')
+    // ✅ Read from minute30 collection (30-minute intervals)
+    final minute30Docs = await remainerDoc.reference
+        .collection('minute30')
         .get();
 
-    final sortedMinute10 = minute10Docs.docs.toList()
+    final sortedMinute30 = minute30Docs.docs.toList()
       ..sort((a, b) {
         int idA = a.get('id') as int? ?? 0;
         int idB = b.get('id') as int? ?? 0;
         return idA.compareTo(idB);
       });
 
-    // เนื่องจาก currentHour เป็น 'hour' ID ก่อนหน้านี้
-    // ต้องอัพเดตค่า x ให้เป็นค่าที่ถูกต้องสำหรับ remainer
-    // การเพิ่ม 0.1 อาจไม่ถูกต้อง 100% ขึ้นอยู่กับรูปแบบข้อมูล
-    // แต่เพื่อรักษา logic เดิม:
-    // currentHour += 0.1; // ใช้ค่าเดิม
-    
-    // Logic: ให้จุด remainer ต่อจากจุดสุดท้ายของ hour สุดท้าย
-    // แต่เนื่องจากโค้ดใช้ currentHour สำหรับ X-axis label ในกราฟ (hour:00) 
-    // เราจะใช้ logic เดิมและยอมรับว่าการแสดงผล X-axis อาจไม่ตรงใน detail mode
-    
-    // ใช้ค่า x เป็น index แทนเพื่อวาดกราฟที่ถูกต้อง
-    // แต่เนื่องจากเราใช้ `e.key.toDouble()` ใน `_buildGraphView` 
-    // เราจะใช้ logic การเก็บค่า x ที่อาจจะใช้สำหรับ label
-    
+    // Continue from last hour
     currentHour += 0.1;
-    for (var minuteDoc in sortedMinute10) {
+    for (var minuteDoc in sortedMinute30) {
       final dots = minuteDoc.get('dot') as List<dynamic>? ?? [];
       for (var dot in dots) {
         if (dot is num) {
@@ -314,7 +302,7 @@ Future<List<String>> getDateToday() async {
 
 /// ✅ ได้เวลาเริ่มและสิ้นสุด เช่น "10:00 pm - 7:30 am"
 /// ดึงข้อมูลเพียงครั้งเดียว
-Future<Map<String, String>> getSleepTime() async {
+Future<Map<String, String>> getSleepStartEnd() async {
   final data = await getLatestSleepSessionWithCache();
   final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
 
@@ -503,6 +491,7 @@ Future<Map<String, List<DotDataPoint>>> getGraphData() async {
   };
 }
 
+
 // ============================================================================
 // FUNCTION 7: Update Note
 // ============================================================================
@@ -590,258 +579,553 @@ class DotDataPoint {
         return Colors.grey;
     }
   }
+
 }
 
+List<Color> getcategoryColorList() {
+  final corlors = [
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.red
+  ];
+  return corlors;
+}
+
+Color colorCal(double y) {
+  if (0 <= y && y < 25) {
+    return getcategoryColorList()[0];
+  }else if (25 <= y && y < 50) {
+    return getcategoryColorList()[1];
+  }else if (50 <= y && y < 75) {
+    return getcategoryColorList()[2];
+  }else if (75 <= y && y < 100) {
+    return getcategoryColorList()[3];
+  }
+
+  return Colors.grey;
+}
 
 // ============================================================================
 // GRAPH WIDGET WITH MODE TOGGLE
 // ============================================================================
 
-class GraphWithModeToggle extends StatefulWidget {
+// ✅ SINGLE NORMAL MODE - No mode toggle
+class GraphBuilder extends StatefulWidget {
   @override
-  State<GraphWithModeToggle> createState() => _GraphWithModeToggleState();
+  State<GraphBuilder> createState() => _GraphBuilderState();
 }
 
-class _GraphWithModeToggleState extends State<GraphWithModeToggle> {
-  // ✅ ตัวแปรเก็บ mode (true = overview, false = detail)
-  bool isOverviewMode = true;
-
+class _GraphBuilderState extends State<GraphBuilder> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, List<DotDataPoint>>>(
-        // ✅ เรียก getGraphData()
-        future: getGraphData(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
+    return FutureBuilder<Map<String, dynamic>>(
+      future: getLatestSleepSessionWithCache(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          if (snapshot.hasError) {
-             return Center(child: Text('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล: ${snapshot.error}'));
-          }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล: ${snapshot.error}'),
+          );
+        }
 
-          if (!snapshot.hasData || snapshot.data == null) {
-            return Center(child: Text('ไม่พบข้อมูล'));
-          }
+        final data = snapshot.data;
+        if (data == null || data['allDots'] == null) {
+          return const Center(child: Text('ไม่พบข้อมูล'));
+        }
 
-          // ✅ ดึงข้อมูล
-          final graphData = snapshot.data!;
-          final allDots = graphData['allDots']!;
-          final overviewDots = graphData['overviewDots']!;
+        final allDots = data['allDots'] as List<DotDataPoint>? ?? [];
+        final sessionData = data['sessionData'] as Map<String, dynamic>? ?? {};
 
-          if (allDots.isEmpty) {
-            return Center(child: Text('ไม่มีข้อมูล'));
-          }
+        if (allDots.isEmpty) {
+          return const Center(child: Text('ไม่มีข้อมูล'));
+        }
 
-          // ✅ เลือก display data ตามโหมด
-          final displayDots = isOverviewMode ? overviewDots : allDots;
-
-          return _buildGraphView(context, displayDots, isOverviewMode);
-        },
-      );
-  }
-
-  // ✅ Build graph view
-  Widget _buildGraphView(
-      BuildContext context, List<DotDataPoint> displayDots, bool isOverviewMode) {
-    final availableWidth = math.max(MediaQuery.of(context).size.width - 32, 320.0);
-    final graphWidth = isOverviewMode
-        ? availableWidth
-        : math.max(availableWidth, 6500.0);
-
-    // ✅ Convert dots เป็น FlSpot
-    final spots = displayDots
-        .asMap()
-        .entries
-        .map((e) => FlSpot(e.key.toDouble(), e.value.y))
-        .toList();
-
-    // ✅ สีสำหรับ gradient
-    if (displayDots.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Text('ไม่มีข้อมูลสำหรับโหมดนี้'),
-        ),
-      );
-    }
-
-    final baseColors = displayDots.map((d) => d.categoryColor).toList();
-
-    final gradientColors = () {
-      if (baseColors.isEmpty) {
-        return [Colors.blue, Colors.blue];
-      }
-      if (baseColors.length == 1) {
-        return [baseColors.first, baseColors.first];
-      }
-      return baseColors;
-    }();
-
-    final stops = () {
-      if (gradientColors.length <= 1) {
-        return [0.0, 1.0];
-      }
-      return List<double>.generate(
-        gradientColors.length,
-        (i) => i / (gradientColors.length - 1),
-      );
-    }();
-
-
-    return Column(
-      children: [
-        IconButton(
-          icon: Icon(isOverviewMode ? Icons.zoom_in : Icons.zoom_out),
-          tooltip: isOverviewMode ? 'Detailed View' : 'Overview',
-          onPressed: () {
-            setState(() {
-              this.isOverviewMode = !this.isOverviewMode;
-            });
-          },
-        ),
-        SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ✅ GRAPH
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 0),
-                  child: SizedBox(
-                    height: 400,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: BouncingScrollPhysics(),
-                      child: SizedBox(
-                        width: graphWidth,
-                        child: LineChart(
-                          LineChartData(
-                            gridData: FlGridData(show: true),
-                            titlesData: FlTitlesData(
-                              // ซ่อน top & right
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              // แสดง bottom titles
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: (value, meta) {
-                                    if (value.toInt() < 0 || value.toInt() >= displayDots.length) {
-                                       return SizedBox.shrink();
-                                    }
-                                    
-                                    if (isOverviewMode) {
-                                      // Overview: ทุกๆ 10 จุด
-                                      if (value % 10 == 0) {
-                                        // **แก้ไข:** ใช้ค่า X-axis label จาก DotDataPoint
-                                        int hour =
-                                            displayDots[value.toInt()].x.toInt();
-                                        return Padding(
-                                          padding: EdgeInsets.only(top: 8),
-                                          child: Text('${hour}:00',
-                                              style: TextStyle(fontSize: 10)),
-                                        );
-                                      }
-                                    } else {
-                                      // Detail: ทุกๆ 500 จุด
-                                      if (value % 500 == 0) {
-                                        // **แก้ไข:** ใช้ค่า X-axis label จาก DotDataPoint
-                                        int hour =
-                                            displayDots[value.toInt()].x.toInt();
-                                        return Padding(
-                                          padding: EdgeInsets.only(top: 8),
-                                          child: Text('${hour}:00',
-                                              style: TextStyle(fontSize: 8)),
-                                        );
-                                      }
-                                    }
-                                    return SizedBox.shrink();
-                                  },
-                                  reservedSize: 30,
-                                ),
-                              ),
-                              // แสดง left titles
-                              // **แก้ไข:** ย้าย leftTitles มาไว้ใน FlTitlesData
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 30,
-                                  getTitlesWidget: (value, meta) {
-                                      if (value % 25 == 0) {
-                                        return Text(
-                                          '${value.toInt()}',
-                                          style: TextStyle(fontSize: 10),
-                                          textAlign: TextAlign.right,
-                                        );
-                                      }
-                                      return SizedBox.shrink();
-                                    },
-                                ),
-                              ),
-                            ),
-                            borderData: FlBorderData(show: true),
-                            minX: 0,
-                            maxX: spots.length > 0 ? spots.length.toDouble() -1 : 0, // **แก้ไข:** maxX - 1 ให้ตรงกับ Index
-                            minY: 0,
-                            maxY: 100,
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: spots,
-                                // ✅ isCurved ตามโหมด
-                                isCurved: isOverviewMode,
-                                // **แก้ไข:** LinearGradient 
-                                gradient: LinearGradient(
-                                  colors: gradientColors,
-                                  stops: stops,
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                                barWidth: 2.5,
-                                dotData: FlDotData(show: false),
-                                shadow: Shadow(
-                                  blurRadius: 8,
-                                  color: Colors.black.withOpacity(0.1),
-                                  offset: Offset(0, 4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // ✅ Legend
-                const Text('Legend:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    // **แก้ไข:** ใช้สีตาม CategoryDetail และ DotDataPoint
-                    _buildLegendItem('Apnea', Colors.blue),
-                    _buildLegendItem('Quiet', Colors.green),
-                    _buildLegendItem('Lound', Colors.orange),
-                    _buildLegendItem('Very Lound', Colors.red),
-                  ],
-                ),
-              ],
+        return Column(
+          // this graph shit
+          children: [
+            Padding(
+              padding: EdgeInsetsGeometry.symmetric(vertical: 0),
+              child: _buildGraphWidget(
+                context: context,
+                dots: allDots,
+                sessionData: sessionData,
+              ),
             ),
-          ),
-        ),
-      ],
+
+            // this shit
+            // const SizedBox(height: 24),
+            // _buildLegendSection(),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ------------------------------
+//      Build Graph
+// ------------------------------
+
+Widget _buildGraphWidget({
+  required BuildContext context,
+  required List<DotDataPoint> dots,
+  required Map<String, dynamic> sessionData,
+}) {
+  if (dots.isEmpty) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Text('ยังไม่มีข้อมูล'),
     );
   }
 
-  // ✅ Legend item
-  Widget _buildLegendItem(String label, Color color) {
+  final mediaWidth = MediaQuery.of(context).size.width;
+  final graphWidth = math.max(mediaWidth - 32, 320.0);
+
+  // ✅ Single normal mode: scrollable if data is wide
+  final chart = SizedBox(
+    width: graphWidth,
+    height: 300,
+    child: LineChart(
+      _buildChartData(
+        dots: dots,
+        sessionData: sessionData,
+        isCurved: false,
+      ),
+    ),
+  );
+
+  // If data is wide, make it horizontally scrollable
+  if (dots.length > 500) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: SingleChildScrollView(
+        clipBehavior: Clip.none,
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: SizedBox(
+          width: math.max(graphWidth, dots.length * 2.0),
+          height: 300,
+          child: LineChart(
+            _buildChartData(
+              dots: dots,
+              sessionData: sessionData,
+              isCurved: false,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: chart,
+  );
+}
+
+LineChartData _buildChartData({
+  required List<DotDataPoint> dots,
+  required Map<String, dynamic> sessionData,
+  bool isCurved = false,
+}) {
+  // Parse DateTime from session data
+  final startTimeRaw = sessionData['startTime'];
+  final endTimeRaw = sessionData['endTime'];
+  final startsess = _parseDateTime(startTimeRaw);
+  final endsess = _parseDateTime(endTimeRaw);
+
+  if (startsess == null || endsess == null || dots.isEmpty) {
+    // Fallback to simple sequential mapping if no time data
+    final spots = dots
+        .asMap()
+        .entries
+        .map((entry) => FlSpot(entry.key.toDouble(), entry.value.y))
+        .toList();
+    return _buildChartDataWithSpots(spots, dots, {}, [], isCurved);
+  }
+
+  // Calculate total duration
+  final totalDurationMinutes = endsess.difference(startsess).inMinutes.toDouble();
+
+  // Group dots into 30-minute intervals and create aligned positions
+  final Map<int, DateTime> indexToTime = {};
+  final Map<int, double> indexToAlignedX = {};
+  final List<FlSpot> spots = [];
+  
+  // Calculate 30-minute interval boundaries
+  final List<DateTime> intervalBoundaries = [];
+  DateTime currentInterval = DateTime(
+    startsess.year,
+    startsess.month,
+    startsess.day,
+    startsess.hour,
+    (startsess.minute ~/ 30) * 30, // Round down to nearest :00 or :30
+    0,
+  );
+  
+  while (currentInterval.isBefore(endsess) || currentInterval.isAtSameMomentAs(endsess)) {
+    intervalBoundaries.add(currentInterval);
+    currentInterval = currentInterval.add(const Duration(minutes: 30));
+  }
+  
+  // If end time doesn't align with interval, add it
+  if (intervalBoundaries.isEmpty || intervalBoundaries.last.isBefore(endsess)) {
+    intervalBoundaries.add(endsess);
+  }
+
+  // Map each dot to its time and aligned x-position
+  // Track which interval each dot belongs to and ensure first dot aligns with boundary
+  final Map<int, int> dotToIntervalIndex = {};
+  final Map<int, List<int>> intervalToDots = {};
+  
+  // First pass: assign dots to intervals
+  for (int i = 0; i < dots.length; i++) {
+    // Calculate time for this dot
+    final fraction = (dots.length > 1) ? i / (dots.length - 1) : 0.0;
+    final minutesOffset = fraction * totalDurationMinutes;
+    final dotTime = startsess.add(Duration(minutes: minutesOffset.toInt()));
+    indexToTime[i] = dotTime;
+    
+    // Find which 30-minute interval this dot belongs to
+    int intervalIndex = 0;
+    for (int j = 0; j < intervalBoundaries.length - 1; j++) {
+      if (dotTime.isBefore(intervalBoundaries[j + 1])) {
+        intervalIndex = j;
+        break;
+      } else if (dotTime.isAtSameMomentAs(intervalBoundaries[j + 1])) {
+        // If exactly at boundary, assign to next interval
+        intervalIndex = j + 1;
+        break;
+      }
+      intervalIndex = j + 1;
+    }
+    // Clamp to valid range
+    if (intervalIndex >= intervalBoundaries.length) {
+      intervalIndex = intervalBoundaries.length - 1;
+    }
+    
+    dotToIntervalIndex[i] = intervalIndex;
+    intervalToDots.putIfAbsent(intervalIndex, () => []).add(i);
+  }
+  
+  // Second pass: calculate aligned x-positions
+  // First dot in each interval aligns with interval start
+  for (int i = 0; i < dots.length; i++) {
+    final intervalIndex = dotToIntervalIndex[i]!;
+    final intervalStartX = intervalIndex.toDouble();
+    final intervalEndX = (intervalIndex + 1).toDouble();
+    
+    final dotTime = indexToTime[i]!;
+    final intervalStartTime = intervalBoundaries[intervalIndex];
+    final intervalEndTime = intervalIndex < intervalBoundaries.length - 1
+        ? intervalBoundaries[intervalIndex + 1]
+        : endsess;
+    
+    // Check if this is the first dot in this interval
+    final dotsInInterval = intervalToDots[intervalIndex]!;
+    final isFirstInInterval = dotsInInterval.first == i;
+    
+    double alignedX;
+    if (isFirstInInterval) {
+      // First dot in interval aligns exactly with interval start
+      alignedX = intervalStartX;
+    } else if (intervalIndex < intervalBoundaries.length - 1) {
+      // Calculate position within current interval
+      final intervalDuration = intervalEndTime.difference(intervalStartTime).inMinutes;
+      if (intervalDuration > 0) {
+        final timeInInterval = dotTime.difference(intervalStartTime).inMinutes;
+        final fractionInInterval = timeInInterval / intervalDuration;
+        // Ensure we don't go beyond interval end
+        final clampedFraction = fractionInInterval.clamp(0.0, 1.0);
+        alignedX = intervalStartX + (clampedFraction * (intervalEndX - intervalStartX));
+      } else {
+        alignedX = intervalStartX;
+      }
+    } else {
+      // Last interval - align with end
+      alignedX = intervalEndX;
+    }
+    
+    indexToAlignedX[i] = alignedX;
+    spots.add(FlSpot(alignedX, dots[i].y));
+  }
+
+  return _buildChartDataWithSpots(
+    spots, 
+    dots, 
+    indexToTime, 
+    intervalBoundaries,
+    isCurved,
+  );
+}
+
+LineChartData _buildChartDataWithSpots(
+  List<FlSpot> spots,
+  List<DotDataPoint> dots,
+  Map<int, DateTime> indexToTime,
+  List<DateTime> intervalBoundaries,
+  bool isCurved,
+) {
+  // Pre-calculate all label positions and times to avoid duplicates
+  final Map<double, String> labelPositions = {};
+  final Set<String> usedLabels = {}; // Track used labels to prevent duplicates
+  
+  if (intervalBoundaries.isNotEmpty) {
+    // Add labels at each interval boundary and :30 marks
+    for (int i = 0; i < intervalBoundaries.length; i++) {
+      final boundary = intervalBoundaries[i];
+      
+      // Determine if this boundary is at :00 or :30
+      final isAtHalfHour = boundary.minute == 30;
+      final isAtFullHour = boundary.minute == 0;
+      
+      if (isAtFullHour || isAtHalfHour) {
+        // Use the actual boundary time
+        final label = DateFormat.Hm().format(boundary);
+        
+        // Only add if we haven't used this label before
+        if (!usedLabels.contains(label)) {
+          labelPositions[i.toDouble()] = label;
+          usedLabels.add(label);
+        }
+      } else {
+        // Round to nearest :00
+        final roundedTime = DateTime(
+          boundary.year,
+          boundary.month,
+          boundary.day,
+          boundary.hour,
+          0,
+          0,
+        );
+        final label = DateFormat.Hm().format(roundedTime);
+        
+        if (!usedLabels.contains(label)) {
+          labelPositions[i.toDouble()] = label;
+          usedLabels.add(label);
+        }
+      }
+      
+      // Add :30 label between boundaries if there's a next boundary
+      if (i < intervalBoundaries.length - 1) {
+        final nextBoundary = intervalBoundaries[i + 1];
+        final duration = nextBoundary.difference(boundary).inMinutes;
+        
+        if (duration >= 30) {
+          // Calculate :30 time from current boundary
+          final halfTime = DateTime(
+            boundary.year,
+            boundary.month,
+            boundary.day,
+            boundary.hour,
+            boundary.minute,
+            0,
+          ).add(Duration(minutes: 30));
+          
+          // Only add if it doesn't exceed next boundary
+          if (halfTime.isBefore(nextBoundary) || halfTime.isAtSameMomentAs(nextBoundary)) {
+            final halfLabel = DateFormat.Hm().format(halfTime);
+            
+            // Only add if we haven't used this label before
+            if (!usedLabels.contains(halfLabel)) {
+              labelPositions[i.toDouble() + 0.5] = halfLabel;
+              usedLabels.add(halfLabel);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // final colors = dots.map((d) => d.categoryColor).toList();
+  final List<Color> gradientColors = getcategoryColorList();
+  // final gradientColors = colors.isEmpty
+  //     ? [Colors.blue, Colors.blue]
+  //     : colors.length == 1
+  //         ? [colors.first, colors.first]
+  //         : colors;
+  // final stops = gradientColors.length <= 1
+  //     ? const [0.0, 1.0]
+  //     : List<double>.generate(
+  //         gradientColors.length,
+  //         (i) => i / (gradientColors.length - 1),
+  //       );
+
+  return LineChartData(
+    clipData: FlClipData.none(),
+
+    gridData: FlGridData(show: true),
+    titlesData: FlTitlesData(
+      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      bottomTitles: AxisTitles(
+        sideTitles: SideTitles(
+          showTitles: true,
+          reservedSize: 28,
+          interval: 0.5, // Show label every 0.5 units (30-minute intervals)
+          getTitlesWidget: (value, meta) {
+            // Round to nearest 0.5 to check if we're at a :00 or :30 mark
+            final roundedValue = (value * 2).round() / 2.0;
+            if ((value - roundedValue).abs() > 0.05) {
+              return const SizedBox.shrink();
+            }
+            
+            // Check if we have a pre-calculated label for this position
+            if (labelPositions.containsKey(roundedValue)) {
+              final label = labelPositions[roundedValue]!;
+              return Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 10),
+                ),
+              );
+            }
+            
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+      leftTitles: AxisTitles(
+        sideTitles: SideTitles(
+          showTitles: true,
+          reservedSize: 32,
+          getTitlesWidget: (value, meta) {
+            if (value % 25 != 0) {
+              return const SizedBox.shrink();
+            }
+            return Text(
+              value.toInt().toString(),
+              style: const TextStyle(fontSize: 10),
+            );
+          },
+        ),
+      ),
+    ),
+    borderData: FlBorderData(show: true),
+    minX: spots.isEmpty ? 0 : spots.map((s) => s.x).reduce(math.min),
+    maxX: spots.isEmpty ? 0 : spots.map((s) => s.x).reduce(math.max),
+    minY: 0,
+    maxY: 100,
+    lineBarsData: [
+      LineChartBarData(
+        spots: spots,
+        isCurved: isCurved,
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          // stops: [0,0.25,0.5,0.75,1.0],
+        ),
+        barWidth: 2.5,
+        dotData: FlDotData(show: false),
+        shadow: Shadow(
+          blurRadius: 8,
+          color: Colors.black.withOpacity(0.1),
+          offset: const Offset(0, 4),
+        ),
+      ),
+    ],
+
+    lineTouchData: LineTouchData(
+      enabled: true,
+      touchTooltipData: LineTouchTooltipData(
+        getTooltipItems: (touchedSpots) {
+          return touchedSpots.map((spot) {
+            // Find the original dot index from the spot's x position
+            int originalIndex = 0;
+            double minDistance = double.infinity;
+            for (int i = 0; i < spots.length; i++) {
+              final distance = (spots[i].x - spot.x).abs();
+              if (distance < minDistance) {
+                minDistance = distance;
+                originalIndex = i;
+              }
+            }
+            
+            String label = '--:--';
+            if (indexToTime.containsKey(originalIndex)) {
+              final time = indexToTime[originalIndex]!;
+              label = DateFormat.Hm().format(time);
+            }
+            
+            return LineTooltipItem(
+              '$label : ${spot.y.toStringAsFixed(1)}',
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            );
+          }).toList();
+        },
+        getTooltipColor: (LineBarSpot touchedSpot) {
+          return colorCal(touchedSpot.y);
+        },
+        tooltipBorderRadius: BorderRadius.circular(8),
+      ),
+
+      getTouchLineStart: (barData, spotIndex) => 0,
+
+      getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+        return spotIndexes.map((index) {
+          return TouchedSpotIndicatorData(
+            FlLine( 
+              color: colorCal(barData.spots[index].y),
+              strokeWidth: 2,
+              dashArray: [4, 4],
+            ),
+            FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius:4,                       
+                  color: colorCal(spot.y),         
+                  strokeWidth:1,
+                  strokeColor: Colors.white,      
+                );
+              },
+            ), 
+          );
+        }).toList();
+      },
+    ),
+  );
+}
+
+// this shit
+
+Widget _buildLegendSection() {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Legend',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: const [
+          _LegendItem(label: 'Apnea', color: Colors.blue),
+          _LegendItem(label: 'Quiet', color: Colors.green),
+          _LegendItem(label: 'Lound', color: Colors.orange),
+          _LegendItem(label: 'Very Lound', color: Colors.red),
+        ],
+      ),
+    ],
+  );
+}
+
+
+class _LegendItem extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _LegendItem({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Container(
@@ -852,8 +1136,8 @@ class _GraphWithModeToggleState extends State<GraphWithModeToggle> {
             shape: BoxShape.circle,
           ),
         ),
-        SizedBox(width: 6),
-        Text(label, style: TextStyle(fontSize: 12)),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );
   }
