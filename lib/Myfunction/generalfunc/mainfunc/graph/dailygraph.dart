@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:async';
@@ -201,14 +202,6 @@ class SleepController {
     return overviewDots;
   }
 
-  String _getCategory(double value) {
-    if (0 <= value && value <= 25) return "Apnea";
-    if (25 < value && value <= 50) return "Quiet";
-    if (50 < value && value <= 75) return "Lound";
-    if (75 < value && value <= 100) return "Very Lound";
-    return "Unknown";
-  }
-
   DateTime? _parseDateTime(dynamic timeRaw) {
     try {
       if (timeRaw is Timestamp) return timeRaw.toDate();
@@ -229,7 +222,7 @@ class SleepController {
   // PUBLIC UTILITY FUNCTIONS
   // ==========================
 
-  Future<List<String>> getDateToday() async {
+  List<String> getDateToday() {
     if (!isLoaded) return ['--', '--'];
     final startTime = sessionData!['startTime'];
     final dt = _parseDateTime(startTime);
@@ -257,38 +250,57 @@ class SleepController {
     return '${duration.inHours}:${(duration.inMinutes % 60).toString().padLeft(2, '0')}';
   }
 
-  Future<Map<String, CategoryDetail>> getCategoryDetails() async {
+  String _getCategory(double value) {
+    if (0 <= value && value <= 25) return "Apnea";
+    if (25 < value && value <= 50) return "Quiet";
+    if (50 < value && value <= 75) return "Lound";
+    if (75 < value && value <= 100) return "Very Lound";
+    return "Unknown";
+  }
+
+
+  Map<String, CategoryDetail> getCategoryDetails() {
     if (!isLoaded) return {};
     final apneaCount = sessionData!['apnea'] as int? ?? 0;
     final quietCount = sessionData!['quiet'] as int? ?? 0;
     final loundCount = sessionData!['lound'] as int? ?? 0;
     final veryLoundCount = sessionData!['verylound'] as int? ?? 0;
 
+    final int total = apneaCount+quietCount+loundCount+veryLoundCount;
+    final double apneaPercent = (apneaCount / total.toDouble())*100;
+    final double quietPercent = (quietCount / total.toDouble())*100;
+    final double loundPercent = (loundCount / total.toDouble())*100;
+    final double veryLoundPercent = (veryLoundCount / total.toDouble())*100;
+
     return {
       'apnea': CategoryDetail(
-        color: Colors.blue,
+        color: Color(0xFF2283D0),
         count: apneaCount,
+        percent: apneaPercent,
         start: 0,
         end: 25,
-        name: 'Apnea',
+        name: 'Undertect',
       ),
       'quiet': CategoryDetail(
-        color: Colors.green,
+        color: Color(0xFF15B700),
         count: quietCount,
+        percent: quietPercent,
         start: 25,
         end: 50,
         name: 'Quiet',
       ),
       'lound': CategoryDetail(
-        color: Colors.orange,
+        color: Color(0xFFE07528),
         count: loundCount,
+        percent: loundPercent,
         start: 50,
         end: 75,
         name: 'Lound',
       ),
       'veryLound': CategoryDetail(
-        color: Colors.red,
+        color: Color(0xFFD53739),
         count: veryLoundCount,
+        percent: veryLoundPercent,
         start: 75,
         end: 100,
         name: 'Very Lound',
@@ -296,7 +308,7 @@ class SleepController {
     };
   }
 
-  Future<SnoreStats> getSnoreStatistics() async {
+  SnoreStats getSnoreStatistics() {
     if (!isLoaded) return SnoreStats(totalSnoreTime: '--:--', snorePercentage: 0.0, totalSnoreDots: 0);
     final loundCount = sessionData!['lound'] as int? ?? 0;
     final veryLoundCount = sessionData!['verylound'] as int? ?? 0;
@@ -328,13 +340,14 @@ class SleepController {
     };
   }
 
+  // Update note
   Future<bool> updateSessionNote(String newNote) async {
     try {
-      final wordCount = newNote.trim().isEmpty
-          ? 0
-          : newNote.trim().split(RegExp(r'\s+')).length;
-      if (wordCount > 100) {
-        print('Note exceeds 100 words. Current: $wordCount words');
+
+      newNote = newNote.trim();
+
+      if (!isLoaded || _sessionId == null) {
+        print('No session loaded');
         return false;
       }
 
@@ -344,26 +357,29 @@ class SleepController {
       final userEmail = user.email;
       final firestore = FirebaseFirestore.instance;
 
-      final sessionsQuery = await firestore
-          .collection('General user')
-          .doc(userEmail)
-          .collection('sleepsession')
-          .orderBy('id', descending: true)
-          .limit(1)
-          .get();
-
-      if (sessionsQuery.docs.isEmpty) return false;
-
-      final latestSession = sessionsQuery.docs.first;
-      final oldNote = latestSession.get('note') as String? ?? '';
+      final oldNote = sessionData!["note"].toString();
 
       if (oldNote == newNote) {
-        print('Note unchanged. No update needed.');
+        print("no change on new note");
         return true;
       }
 
-      await latestSession.reference.update({'note': newNote});
-      clearCache();
+      final sessionQuery = await firestore
+          .collection('General user')
+          .doc(userEmail)
+          .collection('sleepsession')
+          .where('id', isEqualTo: _sessionId)
+          .limit(1)
+          .get();
+ 
+      if (sessionQuery.docs.isEmpty) {
+        print('Session ID $_sessionId not found');
+        return false;
+      }
+
+      await sessionQuery.docs.first.reference.update({"note" : newNote});
+
+      sessionData!['note'] = newNote;
 
       print('Note updated successfully');
       return true;
@@ -372,6 +388,12 @@ class SleepController {
       return false;
     }
   }
+
+  String getNote() {
+    if (!isLoaded) return '';
+    return sessionData!['note'] as String? ?? '';
+  }
+  
 
   double _parseTimeToMinutes(String timeStr) {
     try {
@@ -390,119 +412,119 @@ class SleepController {
   // ========================================================================
 
   // ✅ เช็คว่ามี session ใหม่หรือไม่ (ไม่ใช้ realtime listener)
-  Future<bool> hasNewSession() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return false;
+  // Future<bool> hasNewSession() async {
+  //   try {
+  //     final user = FirebaseAuth.instance.currentUser;
+  //     if (user == null) return false;
 
-      final userEmail = user.email;
-      final firestore = FirebaseFirestore.instance;
+  //     final userEmail = user.email;
+  //     final firestore = FirebaseFirestore.instance;
 
-      final sessionsQuery = await firestore
-          .collection('General user')
-          .doc(userEmail)
-          .collection('sleepsession')
-          .orderBy('id', descending: true)
-          .limit(1)
-          .get();
+  //     final sessionsQuery = await firestore
+  //         .collection('General user')
+  //         .doc(userEmail)
+  //         .collection('sleepsession')
+  //         .orderBy('id', descending: true)
+  //         .limit(1)
+  //         .get();
 
-      if (sessionsQuery.docs.isEmpty) return false;
+  //     if (sessionsQuery.docs.isEmpty) return false;
 
-      final latestSessionId = sessionsQuery.docs.first.get('id') as int;
+  //     final latestSessionId = sessionsQuery.docs.first.get('id') as int;
 
-      // เปรียบเทียบกับ sessionId ปัจจุบัน
-      return _sessionId != latestSessionId;
-    } catch (e) {
-      print('Error checking new session: $e');
-      return false;
-    }
-  }
+  //     // เปรียบเทียบกับ sessionId ปัจจุบัน
+  //     return _sessionId != latestSessionId;
+  //   } catch (e) {
+  //     print('Error checking new session: $e');
+  //     return false;
+  //   }
+  // }
 
   // ========================================================================
   // REALTIME LISTENER (Optional - ไม่ใช้ใน Manual mode)
   // ========================================================================
 
-  StreamSubscription<QuerySnapshot>? _sleepSessionListener;
+  // StreamSubscription<QuerySnapshot>? _sleepSessionListener;
 
-  void startListeningToSessions({VoidCallback? onUpdate}) {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+  // void startListeningToSessions({VoidCallback? onUpdate}) {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   if (user == null) return;
 
-    final userEmail = user.email;
-    final firestore = FirebaseFirestore.instance;
+  //   final userEmail = user.email;
+  //   final firestore = FirebaseFirestore.instance;
 
-    _sleepSessionListener?.cancel();
+  //   _sleepSessionListener?.cancel();
 
-    _sleepSessionListener = firestore
-        .collection('General user')
-        .doc(userEmail)
-        .collection('sleepsession')
-        .orderBy('id', descending: true)
-        .limit(1)
-        .snapshots()
-        .listen((snapshot) async {
-      if (snapshot.docs.isEmpty) return;
+  //   _sleepSessionListener = firestore
+  //       .collection('General user')
+  //       .doc(userEmail)
+  //       .collection('sleepsession')
+  //       .orderBy('id', descending: true)
+  //       .limit(1)
+  //       .snapshots()
+  //       .listen((snapshot) async {
+  //     if (snapshot.docs.isEmpty) return;
 
-      final latestSessionId = snapshot.docs.first.get('id') as int?;
+  //     final latestSessionId = snapshot.docs.first.get('id') as int?;
 
-      if (_sessionId != latestSessionId) {
-        clearCache();
-        await loadLatestSession();
-        if (onUpdate != null) onUpdate();
-      }
-    });
-  }
+  //     if (_sessionId != latestSessionId) {
+  //       clearCache();
+  //       await loadLatestSession();
+  //       if (onUpdate != null) onUpdate();
+  //     }
+  //   });
+  // }
 
-  void stopListening() {
-    _sleepSessionListener?.cancel();
-    _sleepSessionListener = null;
-  }
+  // void stopListening() {
+  //   _sleepSessionListener?.cancel();
+  //   _sleepSessionListener = null;
+  // }
 }
 
 // ============================================================================
 // LEGACY FUNCTIONS - Wrapper สำหรับ backward compatibility
 // ============================================================================
 
-Future<List<String>> getDateToday() async {
-  final controller = SleepController();
-  await controller.loadLatestSession();
-  return controller.getDateToday();
-}
+// Future<List<String>> getDateToday() async {
+//   final controller = SleepController();
+//   await controller.loadLatestSession();
+//   return controller.getDateToday();
+// }
 
-Future<Map<String, String>> getSleepStartEnd() async {
-  final controller = SleepController();
-  await controller.loadLatestSession();
-  return controller.getSleepStartEnd();
-}
+// Future<Map<String, String>> getSleepStartEnd() async {
+//   final controller = SleepController();
+//   await controller.loadLatestSession();
+//   return controller.getSleepStartEnd();
+// }
 
-Future<String> getTotalSleepTime() async {
-  final controller = SleepController();
-  await controller.loadLatestSession();
-  return controller.getTotalSleepTime();
-}
+// Future<String> getTotalSleepTime() async {
+//   final controller = SleepController();
+//   await controller.loadLatestSession();
+//   return controller.getTotalSleepTime();
+// }
 
-Future<Map<String, CategoryDetail>> getCategoryDetails() async {
-  final controller = SleepController();
-  await controller.loadLatestSession();
-  return controller.getCategoryDetails();
-}
+// Future<Map<String, CategoryDetail>> getCategoryDetails() async {
+//   final controller = SleepController();
+//   await controller.loadLatestSession();
+//   return controller.getCategoryDetails();
+// }
 
-Future<SnoreStats> getSnoreStatistics() async {
-  final controller = SleepController();
-  await controller.loadLatestSession();
-  return controller.getSnoreStatistics();
-}
+// Future<SnoreStats> getSnoreStatistics() async {
+//   final controller = SleepController();
+//   await controller.loadLatestSession();
+//   return controller.getSnoreStatistics();
+// }
 
-Future<Map<String, List<DotDataPoint>>> getGraphData() async {
-  final controller = SleepController();
-  await controller.loadLatestSession();
-  return controller.getGraphData();
-}
+// Future<Map<String, List<DotDataPoint>>> getGraphData() async {
+//   final controller = SleepController();
+//   await controller.loadLatestSession();
+//   return controller.getGraphData();
+// }
 
-Future<bool> updateSessionNote(String newNote) async {
-  final controller = SleepController();
-  return controller.updateSessionNote(newNote);
-}
+// Future<bool> updateSessionNote(String newNote) async {
+//   final controller = SleepController();
+//   return controller.updateSessionNote(newNote);
+// }
 
 // ============================================================================
 // MODEL
@@ -522,13 +544,13 @@ class DotDataPoint {
   Color get categoryColor {
     switch (category) {
       case "Apnea":
-        return Colors.blue;
+        return Color(0xFF2283D0);
       case "Quiet":
-        return Colors.green;
+        return Color(0xFF15B700);
       case "Lound":
-        return Colors.orange;
+        return Color(0xFF1E07528);
       case "Very Lound":
-        return Colors.red;
+        return Color(0xFFD53739);
       default:
         return Colors.grey;
     }
@@ -538,6 +560,7 @@ class DotDataPoint {
 class CategoryDetail {
   final Color color;
   final int count;
+  final double percent;
   final int start;
   final int end;
   final String name;
@@ -545,6 +568,7 @@ class CategoryDetail {
   CategoryDetail({
     required this.color,
     required this.count,
+    required this.percent,
     required this.start,
     required this.end,
     required this.name,
@@ -588,69 +612,222 @@ Color colorCal(double y) {
 }
 
 // ============================================================================
-// GRAPH WIDGET - ใช้ Controller แทน FutureBuilder
+// BUILD PIE GRAPH 
 // ============================================================================
 
-class GraphBuilder extends StatefulWidget {
-  @override
-  State<GraphBuilder> createState() => _GraphBuilderState();
-}
-
-class _GraphBuilderState extends State<GraphBuilder> {
-  final controller = SleepController();
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      await controller.loadLatestSession();
-    } catch (e) {
-      _errorMessage = 'Error loading data: $e';
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_errorMessage != null) {
-      return Center(child: Text(_errorMessage!));
-    }
-
-    if (!controller.isLoaded || controller.allDots.isEmpty) {
-      return const Center(child: Text('No data available'));
-    }
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 0),
-          child: buildGraphWidget(
-            context: context,
-            dots: controller.allDots,
-            sessionData: controller.sessionData ?? {},
-          ),
-        ),
-      ],
+Widget buildPiechart({
+  required Map<String, CategoryDetail> category
+}) {
+  if (category.isEmpty) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Text('No data available'),
     );
   }
+
+  return Container(
+    height: 115,
+    decoration: BoxDecoration(
+      // color: Colors.white
+    ),
+    child: PieChart(
+      PieChartData(
+        centerSpaceRadius: 25, // Adjust this value to control the hole size
+        sections: _piechartSections(category: category),
+        sectionsSpace: 0, // Optional: space between sections
+        startDegreeOffset: -360
+      )
+    ),
+  );
+}
+
+List<PieChartSectionData> _piechartSections({
+  required Map<String, CategoryDetail> category
+}) {
+  const double radius = 30; // Optional: customize the thickness of the segments
+
+  final List<CategoryDetail> categoryList = category.values.toList();
+
+  final List<PieChartSectionData> list = [];
+
+  for (var item in categoryList) {
+    list.add(
+      PieChartSectionData(
+        color: item.color,
+        value: item.count.toDouble(),
+        title: "",
+        radius: radius,
+        showTitle: true,
+        titleStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            
+        ),
+      ),
+    );
+  }
+  return list;
+}
+
+// ============================================================================
+// BUILD PECENT CATEGORY BAR
+// ============================================================================
+
+
+buildGategoryBar({
+  required Map<String, CategoryDetail> category
+}) {
+  if (category.isEmpty) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Text('No data available'),
+    );
+  }
+
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
+    children: [
+      GatagoryListItem(
+        color: category["apnea"]!.color,
+        title:  category["apnea"]!.name,
+        percent: category["apnea"]!.percent,
+      ),
+      GatagoryListItem(
+        color: category["quiet"]!.color,
+        title:  category["quiet"]!.name,
+        percent: category["quiet"]!.percent,
+      ),
+      GatagoryListItem(
+        color: category["lound"]!.color,
+        title:  category["lound"]!.name,
+        percent: category["lound"]!.percent,
+      ),
+      GatagoryListItem(
+        color: category["veryLound"]!.color,
+        title:  category["veryLound"]!.name,
+        percent: category["veryLound"]!.percent,
+      ),
+    ],
+  );
+}
+
+Widget GatagoryListItem({
+  required Color color,
+  required String title,
+  required double percent
+}) {
+  return Container(
+    child: Row(
+      children: [
+        Container(
+          height: 35,
+          width: 12,
+          decoration: BoxDecoration(
+            color: color,
+            border: Border.all(color:Colors.black,)
+          ),
+        ),
+        SizedBox(width: 3,),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,style: GoogleFonts.itim(fontSize: 12,color: color),),
+            Text("${percent.toStringAsFixed(2)}%",style: GoogleFonts.itim(fontSize: 12,color: color),)
+          ],
+        )
+      ],
+    ),
+  );
+}
+
+// ============================================================================
+// BUILD SHOW TIME ITEM
+// ============================================================================
+
+Widget buildStartEnd({
+  required Map<String, String> startend,
+  required IconData icon
+}) {
+  if (startend.isEmpty || !startend.containsKey("startSession") || !startend.containsKey("endSession")) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Text('No data available'),
+    );
+  }
+
+  String title = "Start/Stop";
+  String desscip = "${startend["startSession"]} to ${startend["endSession"]}";
+
+  return showtimeItem(
+    title: title,
+    desscrip: desscip,
+    icon: icon
+  );
+}
+
+Widget buildSleepTime({
+  required String sleeptime,
+  required IconData icon
+}) {
+  if (sleeptime.isEmpty) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Text('No data available'),
+    );
+  }
+
+  String title = "Sleep time";
+  String desscip = "${sleeptime} hours";
+
+
+  return showtimeItem(
+    title: title,
+    desscrip: desscip,
+    icon: icon
+  );
+}
+
+Widget buildSoreDetial({
+  required SnoreStats snoredetial,
+  required IconData icon
+}) {
+  String title = "Snoring time";
+  String desscip = "${snoredetial.totalSnoreTime} hours - ${snoredetial.snorePercentage}%";
+
+  return showtimeItem(
+    title: title,
+    desscrip: desscip,
+    icon: icon
+  );
+
+}
+
+
+Widget showtimeItem({
+  required String title,
+  required String desscrip,
+  required IconData icon
+}) {
+  return Row(
+    children: [
+      CircleAvatar(
+        radius: 28, 
+        backgroundColor: Colors.blue[200], 
+        child: Icon(icon,color: Colors.black,size: 32,), 
+      ),
+      SizedBox(width: 7.5,),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,style: GoogleFonts.itim(fontSize: 14.5,color: Colors.blue, fontWeight: FontWeight.w500),),
+          Text(desscrip,style: GoogleFonts.itim(fontSize: 13.5,color:  Colors.blue, fontWeight: FontWeight.w500),)
+        ],
+      )
+    ],
+  );
 }
 
 // ============================================================================
@@ -712,6 +889,7 @@ Widget buildGraphWidget({
     ),
   );
 }
+
 
 // ============================================================================
 // BUILD CHART DATA
@@ -952,3 +1130,4 @@ class _LegendItem extends StatelessWidget {
     );
   }
 }
+

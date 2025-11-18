@@ -18,11 +18,9 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
 
   Color navbarcolor = BgColor.BottomNav_bg.color_code;
 
-  final GlobalKey<ResultGaneralState> _resultKey = GlobalKey<ResultGaneralState>();
-
-  List<Widget> get _pages => [
+  List<Widget>  _pages = [
     RecordGeneral(),
-    ResultGaneral(key: _resultKey),
+    ResultGaneral(),
     Center(child: Text('Trend Page')),
     Center(child: Text('search Page')),
     ProfileGeneral(),

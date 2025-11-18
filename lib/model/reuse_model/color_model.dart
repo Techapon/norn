@@ -13,6 +13,12 @@ enum BgColor{
   ),
   BottomNav_bg(
     color_code : Color(0xFF002844)
+  ),
+  Bg1_dark(
+    color_code : Color.fromARGB(255, 197, 244, 255)
+  ),
+  Bg1_dark2(
+    color_code : Color.fromARGB(255, 122, 231, 255)
   );
 
   const BgColor({required this.color_code});

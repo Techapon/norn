@@ -55,6 +55,13 @@ dependencies:
   # image picker
   image_picker: ^1.1.2
 
+  # other
+
+
+  # calander
+  table_calendar: ^3.2.0
+
+
 # Logo App
 flutter_launcher_icons::
   android: "launcher_icon"

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 // import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/My_widget/My_settingElement.dart';
 import 'package:nornsabai/login.dart';
 import 'package:nornsabai/model/reuse_model/bordertype_model.dart';
@@ -59,34 +60,26 @@ class ProfileGeneral extends StatelessWidget {
     }
   }
 
-  void LogoutDailog(BuildContext context) {
-    showDialog(context: context, builder: (context) {
-      return CupertinoAlertDialog(
-        title: Text("Log out"),
-        content: Text("Do you want to log out?"),
-        actions: [
-          MaterialButton(
-            onPressed: (){
-              Navigator.pop(context);
-            }, 
-            child: Text("cancel",style: TextStyle(color: Colors.red),)
-          ),
-          MaterialButton(
-            onPressed: (){
-              FirebaseAuth.instance.signOut().then((value) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                  (route) => false
-                );
-              });
-            }, 
-            child: Text("Yes,I do",style: TextStyle(color: Colors.blue),)
-          ),
-        ],
-      );
-    });
-  }
+  // void LogoutDailog(BuildContext context) {
+  //   showDialog(context: context, builder: (context) {
+  //     return CupertinoAlertDialog(
+  //       title: Text("Log out"),
+  //       content: Text("Do you want to log out?"),
+  //       actions: [
+  //         MaterialButton(
+  //           onPressed: (){
+  //             Navigator.pop(context);
+  //           }, 
+  //           child: Text("cancel",style: TextStyle(color: Colors.red),)
+  //         ),
+  //         MaterialButton(
+  //           onPressed: 
+  //           child: Text("Yes,I do",style: TextStyle(color: Colors.blue),)
+  //         ),
+  //       ],
+  //     );
+  //   });
+  // }
 
   @override
   
@@ -283,7 +276,22 @@ class ProfileGeneral extends StatelessWidget {
                 ),
                 onPressed: (){
                   // Alert
-                  LogoutDailog(context);
+                  MyDiaologAlert(
+                    context: context,
+                    yesText: "Yes,I do",
+                    cancelText: "cancle",
+                    mainText: "Log out",
+                    desscrip: "Do you want to log out?",
+                    onpressed: () {
+                      FirebaseAuth.instance.signOut().then((value) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => LoginPage()),
+                          (route) => false
+                        );
+                      });
+                    }, 
+                  );
                 },
                 child: Text("Log out",style: TextStyle(color: Colors.white,fontSize: 22,fontWeight: FontWeight.w500),)
                 ),
