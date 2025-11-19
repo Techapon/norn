@@ -59,7 +59,8 @@ dependencies:
 
 
   # calander
-  table_calendar: ^3.2.0
+  # flutter_heatmap_calendar: ^1.0.5
+  flutter_heatmap_calendar: ^1.0.5
 
 
 # Logo App

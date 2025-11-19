@@ -9,10 +9,13 @@ void MyDiaologAlertFuture({
   required String cancelText,
   required String mainText,
   required String desscrip,
+  required String whenSuccess,
+  required String whenFail,
   required Future<bool> Function() onpressed,
 }) {
   bool isloading = false;
   bool successed = false;
+  bool click = false;
 
   showDialog(
     context: context,
@@ -55,23 +58,8 @@ void MyDiaologAlertFuture({
                           ],
                       ),
                     )
-                    : successed
-                    ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            CircleAvatar(
-                              radius: 35,
-                              backgroundColor: const Color.fromARGB(255, 63, 189, 67),
-                              child: Icon(Icons.check,color: Colors.white,size:40,),
-                            ),
-                            SizedBox(height: 20,),
-                            Text("Add note successfully!!",style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
-                          ],
-                      ),
-                    )
-                    :Column(
+                    : !click
+                    ? Column(
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -118,10 +106,14 @@ void MyDiaologAlertFuture({
                                   ),
                                 ),
                                 onPressed: () async{
-                                  setStateDialog(() => isloading = true);
+                                  setStateDialog(() {
+                                    isloading = true;
+                                    click = true;
+                                  });
             
-                                  bool result = await onpressed();
-            
+                                  bool? result = await onpressed();
+
+                                  
                                   if (result) {
                                     setStateDialog(() {
                                       successed = true;
@@ -138,7 +130,38 @@ void MyDiaologAlertFuture({
                           ],
                         ),
                       ],
-                    ),
+                    )
+                    : successed
+                    ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CircleAvatar(
+                              radius: 35,
+                              backgroundColor: const Color.fromARGB(255, 63, 189, 67),
+                              child: Icon(Icons.check,color: Colors.white,size:40,),
+                            ),
+                            SizedBox(height: 20,),
+                            Text(whenSuccess,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                          ],
+                      ),
+                    )
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CircleAvatar(
+                                radius: 35,
+                                backgroundColor: const Color.fromARGB(255, 192, 60, 60),
+                                child: Icon(Icons.close,color: Colors.white,size:40,),
+                              ),
+                              SizedBox(height: 20,),
+                              Text(whenFail,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                            ],
+                        ),
+                      )
                 ),
               )
             ),

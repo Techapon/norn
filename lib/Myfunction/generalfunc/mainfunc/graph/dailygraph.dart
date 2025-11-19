@@ -19,17 +19,47 @@ class SleepController {
 
   bool get isLoaded => sessionData != null && allDots.isNotEmpty;
 
-  Future<void> loadLatestSession() async {
-    if (isLoaded) return; // ถ้าโหลดแล้วไม่ทำซ้ำ
+  Future<bool?> loadLatestSession({int? sessionId}) async {
+    bool getSesformId;
+
+    if (sessionId != null && _sessionId == sessionId && isLoaded) {
+      return null;
+    }
+
+    if (sessionId == null && isLoaded) {
+      return null;
+    }
+
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      if (user == null) return null;
 
       final userEmail = user.email;
       final firestore = FirebaseFirestore.instance;
 
-      final sessionsQuery = await firestore
+      DocumentSnapshot<Map<String,dynamic>>? targetSession;
+
+      if (sessionId != null) {
+        getSesformId = true;
+        final sessionsQuery = await firestore
+          .collection('General user')
+          .doc(userEmail)
+          .collection('sleepsession')
+          .where('id', isEqualTo: sessionId)
+          .limit(1)
+          .get();
+
+        if (sessionsQuery.docs.isEmpty) {
+          print('⚠️ Session ID $sessionId not found');
+          return null;
+        }
+
+        targetSession = sessionsQuery.docs.first;
+        print("Loaded session ID: ${sessionId}");
+      }else {
+        getSesformId = false;
+        final sessionsQuery = await firestore
           .collection('General user')
           .doc(userEmail)
           .collection('sleepsession')
@@ -37,23 +67,28 @@ class SleepController {
           .limit(1)
           .get();
 
-      if (sessionsQuery.docs.isEmpty) return;
+        if (sessionsQuery.docs.isEmpty) return null;
 
-      final latestSession = sessionsQuery.docs.first;
-      final sessionId = latestSession.get('id') as int;
-
-      if (_sessionId == sessionId && allDots.isNotEmpty) {
-        // ใช้ cache เดิม
-        return;
+        targetSession = sessionsQuery.docs.first;
+        final latestSessionId  = targetSession.get('id') as int;
       }
 
-      allDots = await _fetchAllDots(latestSession.reference);
+      final loadedSessionId = targetSession.get('id') as int; 
+
+      if (_sessionId == loadedSessionId && allDots.isNotEmpty) {
+        print('ℹ️ Using cached data for session $loadedSessionId');
+        return null;
+      }
+
+      allDots = await _fetchAllDots(targetSession.reference);
       overviewDots = _createOverviewData(allDots, 60);
 
-      _sessionId = sessionId;
-      sessionData = latestSession.data();
+      _sessionId = getSesformId ? sessionId : loadedSessionId;
+      sessionData = targetSession.data();
+      return true;
     } catch (e) {
       print('Error loading latest session: $e');
+      return false;
     }
   }
 
@@ -65,10 +100,86 @@ class SleepController {
   }
 
   // เพิ่ม method สำหรับ force reload
-  Future<void> forceReload() async {
+  Future<void> forceReload({int? sessionId}) async {
     clearCache();
-    await loadLatestSession();
+    await loadLatestSession(sessionId: sessionId);
   }
+
+  // ========================================================================
+  // GET ALL SESSOIN ID
+  // ========================================================================
+  Future<List<int>> getAllSessionIds() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return [];
+
+      final userEmail = user.email;
+      final firestore = FirebaseFirestore.instance;
+
+      final sessionsQuery = await firestore
+          .collection('General user')
+          .doc(userEmail)
+          .collection('sleepsession')
+          .orderBy('id', descending: true)
+          .get();
+
+      return sessionsQuery.docs
+          .map((doc) => doc.get('id') as int)
+          .toList();
+    } catch (e) {
+      print('❌ Error getting session IDs: $e');
+      return [];
+    }
+  }
+
+  // ========================================================================
+  // GET ALL METDATA
+  // ========================================================================
+  Future<List<Map<String, dynamic>>> getSleepTimeandId() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return [];
+
+      final userEmail = user.email;
+      final firestore = FirebaseFirestore.instance;
+
+      final sessionsQuery = await firestore
+          .collection('General user')
+          .doc(userEmail)
+          .collection('sleepsession')
+          .orderBy('id', descending: true)
+          .get();
+
+      return sessionsQuery.docs.map((doc) {
+        final data = doc.data();
+        
+        final startStamp = _parseDateTime( data['startTime']);
+        // final endStamp = _parseDateTime( data['endTime']);
+
+        final startDT = DateTime(
+          startStamp!.year,
+          startStamp.month,
+          startStamp.day,
+        );
+        // final endtDT = DateTime(
+        //   endStamp!.year,
+        //   endStamp.month,
+        //   endStamp.day,
+        // );
+
+        return {
+          'id': data['id'],
+          'startTime':startDT,
+        };
+      }).toList();
+    } catch (e) {
+      print('❌ Error getting sessions metadata: $e');
+      return [];
+    }
+  }
+
+  // GET SESSON ID
+  int? get currentSessionId => _sessionId;
 
   // ========================================================================
   // FETCH ALL DOTS
@@ -347,6 +458,7 @@ class SleepController {
       newNote = newNote.trim();
 
       if (!isLoaded || _sessionId == null) {
+        print("Session === ${_sessionId}");
         print('No session loaded');
         return false;
       }

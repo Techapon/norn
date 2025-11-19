@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/graph/dailygraph.dart';
+import 'package:nornsabai/genaraluser/pange/otherpage/result/widget_func/calendar.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 class ResultGaneral extends StatefulWidget {
@@ -13,6 +15,8 @@ class ResultGaneral extends StatefulWidget {
 }
 
 class ResultGaneralState extends State<ResultGaneral> {
+  // Calendar
+
   final controller = SleepController();
   bool _isLoading = true;
   String? _errorMessage;
@@ -27,6 +31,7 @@ class ResultGaneralState extends State<ResultGaneral> {
   String? _sleeptime;
   SnoreStats? _snoredetial;
   String? _note;
+  List<Map<String, dynamic>> allsleepsession =[];
 
   // loading
   bool addnoteLoading = false;
@@ -52,7 +57,8 @@ class ResultGaneralState extends State<ResultGaneral> {
       _sleeptime = controller.getTotalSleepTime();
       _snoredetial = controller.getSnoreStatistics();
       _note = controller.getNote();
-      // print("This is note ${_note}");
+      
+      allsleepsession = await controller.getSleepTimeandId();
       
     } catch (e) {
       _errorMessage = 'Error loading data: $e';
@@ -76,6 +82,9 @@ class ResultGaneralState extends State<ResultGaneral> {
       _sleeptime = controller.getTotalSleepTime();
       _snoredetial = controller.getSnoreStatistics();
       _note = controller.getNote();
+
+      allsleepsession = await controller.getSleepTimeandId();
+      print(allsleepsession);
       
       if (mounted) {
         setState(() {});
@@ -206,13 +215,15 @@ class ResultGaneralState extends State<ResultGaneral> {
                                       cancelText: "cancle",
                                       mainText: "Add note",
                                       desscrip: "Do you want to change your note?",
+                                      whenSuccess: "Add note successfuly",
+                                      whenFail: "Something went wrong,Please try again",
                                       onpressed: () async{
                                         bool addnoteResult = await controller.updateSessionNote(newNote);
                                         
                                         if (addnoteResult) {
                                           setState(() => _note = controller.getNote());
                                         }
-
+                                        print("Problem ${addnoteResult}");
                                         if (addnoteResult) {
                                         
                                           print("add note success");
@@ -242,6 +253,157 @@ class ResultGaneralState extends State<ResultGaneral> {
     );
   }
 
+  // Calendar
+  void showCalendar() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+
+        // check datetime
+        Map<String,dynamic> findIdByExactDateTime(List<Map<String, dynamic>> sessions, DateTime inputDate) {          
+          for (var session in sessions) {
+            DateTime sessionDate = session['startTime'];
+            print(sessionDate);
+            
+            // เทียบแบบ exact
+            if (sessionDate.isAtSameMomentAs(inputDate)) {
+              print('✅ Found! ID: ${session['id']}');
+              return {
+                "result" : true,
+                "id" : session['id']
+              }; 
+            }
+          }
+          return {
+            "result" : false,
+            "id" : null
+          };
+        }
+
+        List<DateTime> dataTimeList = allsleepsession.map((data) => data["startTime"] as DateTime).toList();
+
+        DateTime startCalen = dataTimeList.last;
+        DateTime endCalen = dataTimeList.first;
+
+        Map<DateTime, int> datasetsDate = {
+          for (var date in dataTimeList) date: 1
+        };
+        
+        return Dialog(
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+        ),
+        insetPadding: EdgeInsets.symmetric(horizontal: 20,vertical: 65),
+        child: Container(
+          width: double.maxFinite,
+          clipBehavior: Clip.antiAlias,
+          padding: EdgeInsets.symmetric(horizontal: 20,vertical: 5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              
+              // head
+              Padding(
+                padding: EdgeInsetsGeometry.symmetric(vertical: 13),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Choose Sleep",
+                      style: GoogleFonts.itim(fontSize: 25,color: headColor[0]),
+                    ),
+                    SizedBox(width: 5,),
+                    Text(
+                      "Sessions",
+                      style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
+                    ),
+                    // SizedBox(width: 5,),
+                  ],
+                ),
+              ),
+
+              // Calendar
+              Container(
+                child: HeatMap(
+                  datasets: datasetsDate,
+                  showColorTip: false,
+                
+                  startDate: DateTime(startCalen.year,startCalen.month,1),
+                  endDate: DateTime(endCalen.year,endCalen.month+1,0),
+                  
+                  textColor: Colors.grey[600],
+                  defaultColor: Colors.grey[360],
+                  
+                  
+                  size: 35,
+                  colorMode: ColorMode.opacity,
+                  showText: true,
+                  scrollable: true,
+                  colorsets: {
+                    1: const Color.fromARGB(255, 110, 190, 255),
+                    
+                  },
+                  onClick: (value) async{
+                    final dateClick = DateTime(
+                      value.year,
+                      value.month,
+                      value.day,
+                    );
+                    print("${dateClick}");
+                    Map<String,dynamic> dataResult =  findIdByExactDateTime(allsleepsession,dateClick);
+                    if (dataResult["result"]) {
+                      MyDiaologAlertFuture(
+                        context: context,
+                        yesText: "Yes,I do",
+                        cancelText: "cancle",
+                        mainText: "Choose sleep session",
+                        whenSuccess: "Session data loaded!!",
+                        whenFail: "Something went wrong,Please try again",
+                        desscrip: "Do you want to choose sleep session?",
+                        onpressed: () async{
+                          await controller.loadLatestSession(sessionId: dataResult["id"]);
+                          _dateToday = controller.getDateToday();
+                          _startend = controller.getSleepStartEnd();
+                          _sleeptime = controller.getTotalSleepTime();
+                          _snoredetial = controller.getSnoreStatistics();
+                          _note = controller.getNote();
+                
+                          if (mounted) {
+                            setState(() {});
+                          }
+                          return true;
+                        },
+                      );
+                     
+                    }
+                  },
+                
+                  
+                ),
+              ),
+
+              Padding(
+                padding: EdgeInsetsGeometry.symmetric(vertical: 15),
+                child: Text("*Select your sleep session you would like to see.",style:  GoogleFonts.itim(color: Colors.black,fontSize: 13),),
+              )
+
+              
+            ],
+          ),
+        ),
+      );
+      }
+    );
+  }
+  
+  
   @override
   Widget build(BuildContext context) {
     // ✅ ถ้ากำลังโหลดครั้งแรก → แสดง loading
@@ -293,6 +455,7 @@ class ResultGaneralState extends State<ResultGaneral> {
                     padding: EdgeInsetsGeometry.symmetric(vertical: 15),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           "${_dateToday?[0]}",
@@ -303,13 +466,14 @@ class ResultGaneralState extends State<ResultGaneral> {
                           "${_dateToday?[1]}",
                           style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
                         ),
-                        SizedBox(width: 5,),
-                        // IconButton(
-                        //   onPressed: () {
-
-                        //   },
-                        //   icon: Icon(Icons.date_range_outlined,color: Colors.black54,)
-                        // )
+                        // SizedBox(width: 5,),
+                        IconButton(
+                          onPressed: () async{
+                            showCalendar();
+                            
+                          },
+                          icon: Icon(Icons.date_range_outlined,color: Colors.black,size: 27.5,)
+                        )
                       ],
                     ),
                   ),
