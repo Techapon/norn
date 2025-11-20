@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:nornsabai/genaraluser/pange/profile_ganeral.dart';
 import 'package:nornsabai/genaraluser/pange/record_general.dart';
 import 'package:nornsabai/genaraluser/pange/result_ganeral.dart';
+import 'package:nornsabai/genaraluser/pange/trend_general.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 
@@ -21,7 +22,7 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
   List<Widget>  _pages = [
     RecordGeneral(),
     ResultGaneral(),
-    Center(child: Text('Trend Page')),
+    TrendGaneral(),
     Center(child: Text('search Page')),
     ProfileGeneral(),
   ];

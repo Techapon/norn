@@ -982,7 +982,7 @@ Widget buildGraphWidget({
   }
 
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.only(left: 16,right: 25),
     child: SingleChildScrollView(
       clipBehavior: Clip.none,
       scrollDirection: Axis.horizontal,
@@ -1085,7 +1085,7 @@ LineChartData _buildChartData({
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   labelPositions[value]!,
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.itim(fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               );
             }
@@ -1096,18 +1096,27 @@ LineChartData _buildChartData({
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 40,
+          reservedSize: 30,
           interval: 25,
           getTitlesWidget: (value, meta) {
             return Text(
               value.toInt().toString(),
-              style: const TextStyle(fontSize: 10),
+              style: GoogleFonts.itim(fontSize: 12,fontWeight: FontWeight.w500),
+              textAlign: TextAlign.center,
             );
           },
         ),
       ),
     ),
-    borderData: FlBorderData(show: true),
+    borderData: FlBorderData(
+      show: true,
+      border: Border(
+        left: BorderSide(color: Colors.black),
+        bottom: BorderSide(color: Colors.black),
+        top: BorderSide.none,
+        right: BorderSide.none,
+      ),
+    ),
     minX: 0,
     maxX: totalMinutes.toDouble(),
     minY: 0,

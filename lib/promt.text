@@ -1,0 +1,298 @@
+สิ่งที่ต้องการให้ทำคือดารสร้าง function สำหรับใช้งานขึ้นมาขอให้ทำความเข้าใจข้อมูลต่อไปนี้ก่อนที่จะสร้าง function แต่ก็จะอธิบายแบบคล่าวก่อน functionเหล่านี้คือ การดึงข้อมูลจาดฐานข้อมูลแล้วนำมาคำนวณ ทำการแบ่งเป็นประเภทต่างแล้วนำมานำมาแสดงผลเป็นกราฟ code ต่อไปนี้จะเป็นวิธีนำข้อมูลมาแสดงเป็นกราฟแบบคล่าว
+
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+
+
+class TrendGaneral extends StatefulWidget {
+  @override
+  _TrendGaneralState createState() => _TrendGaneralState();
+}
+
+class _TrendGaneralState extends State<TrendGaneral> {
+  // ปุ่ม 2 กลุ่ม
+  String selectedPeriod = 'day';    // day / week / month
+  String selectedType = 'type1';    // type1 / type2 / type3
+
+
+
+  Map<String, Map<String, List<int>>> allData = {
+    'day': {
+      'type1': [1, 2, 3],
+      'type2': [3, 2, 1],
+      'type3': [5, 3, 1],
+    },
+    'week': {
+      'type1': [10, 20, 30],
+      'type2': [30, 20, 10],
+      'type3': [15, 10, 5],
+    },
+    'month': {
+      'type1': [100, 200, 300],
+      'type2': [300, 200, 100],
+      'type3': [250, 100, 50],
+    },
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    // เลือกข้อมูลปัจจุบันจาก Map
+    final currentData = allData[selectedPeriod]![selectedType]!;
+
+    return Scaffold(
+      appBar: AppBar(title: Text("Graph Demo")),
+      body: Column(
+        children: [
+          SizedBox(height: 20),
+
+          // ปุ่มเลือก Period
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildPeriodButton("day"),
+              _buildPeriodButton("week"),
+              _buildPeriodButton("month"),
+            ],
+          ),
+
+          SizedBox(height: 20),
+
+          // ปุ่มเลือก Type
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildTypeButton("type1"),
+              _buildTypeButton("type2"),
+              _buildTypeButton("type3"),
+            ],
+          ),
+
+          SizedBox(height: 30),
+
+          // แสดงกราฟ (mock)
+          Expanded(
+            child: Center(
+              child: _MockGraph(data: currentData),
+              // child: SimpleBarChart(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  // ------------------------------------------------------
+  // BUILD BUTTONS
+  // ------------------------------------------------------
+
+  Widget _buildPeriodButton(String value) {
+    bool active = selectedPeriod == value;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: active ? Colors.blue : Colors.grey[300],
+        ),
+        onPressed: () {
+          if (active == selectedPeriod) return;
+          setState(() {
+            selectedPeriod = value;
+          });
+        },
+        child: Text(value),
+      ),
+    );
+  }
+
+  Widget _buildTypeButton(String value) {
+    bool active = selectedType == value;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: active ? Colors.green : Colors.grey[300],
+        ),
+        onPressed: () {
+          if (active == selectedType) return;
+          setState(() {
+            selectedType = value;
+          });
+        },
+        child: Text(value),
+      ),
+    );
+  }
+}
+
+// ------------------------------------------------------
+// MOCK GRAPH WIDGET (สามารถที่ด้วยกราฟจริงได้)
+// ------------------------------------------------------
+
+class _MockGraph extends StatelessWidget {
+  final List<int> data;
+
+  const _MockGraph({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      "GRAPH DATA: ${data.toString()}",
+      style: TextStyle(fontSize: 20),
+      textAlign: TextAlign.center,
+    );
+  }
+}
+
+โดยจะมีการกดปุ่มเลือกประเภทและวันที่เพื่อเปลี่ยนข้อมูลของกราฟที่จะแสดง ต่อไปนี้คือรูปแบบชุดข้อมูลที่จะนำมาแสดงเป็นกราฟ 
+
+  Map<String, Map<String, Map<String,dynamic>>> allData = {
+    'day': {
+      "title" : {"bottomTitles": "bttom title ใน FlTitlesData"},
+      'snore score': {"leftTitles" : "lefttitles ใน FlTitlesData ของsnore score","barGroups" : "barGroups data ใน barGroups ของ snore score"},
+      'snore%': {"leftTitles" : "lefttitles ใน FlTitlesData ของsnore%","barGroups" : "barGroups data ใน barGroups ของ snore%"},
+      'lound%': {"leftTitles" : "lefttitles ใน FlTitlesData ของlound%","barGroups" : "barGroups data ใน barGroups ของ lound%"},
+      'very lound%': {"leftTitles" : "lefttitles ใน FlTitlesData ของvery lound%","barGroups" : "barGroups data ใน barGroups ของ very lound%"},
+      'quiet%': {"leftTitles" : "lefttitles ใน FlTitlesData ของquiet%","barGroups" : "barGroups data ใน barGroups ของ quiet%"},
+      'undetected%': {"leftTitles" : "lefttitles ใน FlTitlesData ของundetected%","barGroups" : "barGroups data ใน barGroups ของ undetected%"},
+      'undetected': {"leftTitles" : "lefttitles ใน FlTitlesData ของundetected","barGroups" : "barGroups data ใน barGroups ของ undetected"},
+      'quiet': {"leftTitles" : "lefttitles ใน FlTitlesData ของquiet","barGroups" : "barGroups data ใน barGroups ของ quiet"},
+      'sleeptime': {"leftTitles" : "lefttitles ใน FlTitlesData ของsleeptime","barGroups" : "barGroups data ใน barGroups ของ sleeptime"},
+    },
+    'week': {
+      "title" : {"bottomTitles": "bttom title ใน FlTitlesData"},
+      'snore score': {"leftTitles" : "lefttitles ใน FlTitlesData ของsnore score","barGroups" : "barGroups data ใน barGroups ของ snore score"},
+      'snore%': {"leftTitles" : "lefttitles ใน FlTitlesData ของsnore%","barGroups" : "barGroups data ใน barGroups ของ snore%"},
+      'lound%': {"leftTitles" : "lefttitles ใน FlTitlesData ของlound%","barGroups" : "barGroups data ใน barGroups ของ lound%"},
+      'very lound%': {"leftTitles" : "lefttitles ใน FlTitlesData ของvery lound%","barGroups" : "barGroups data ใน barGroups ของ very lound%"},
+      'quiet%': {"leftTitles" : "lefttitles ใน FlTitlesData ของquiet%","barGroups" : "barGroups data ใน barGroups ของ quiet%"},
+      'undetected%': {"leftTitles" : "lefttitles ใน FlTitlesData ของundetected%","barGroups" : "barGroups data ใน barGroups ของ undetected%"},
+      'undetected': {"leftTitles" : "lefttitles ใน FlTitlesData ของundetected","barGroups" : "barGroups data ใน barGroups ของ undetected"},
+      'quiet': {"leftTitles" : "lefttitles ใน FlTitlesData ของquiet","barGroups" : "barGroups data ใน barGroups ของ quiet"},
+      'sleeptime': {"leftTitles" : "lefttitles ใน FlTitlesData ของsleeptime","barGroups" : "barGroups data ใน barGroups ของ sleeptime"},
+    },
+    'month': {
+      "title" : {"bottomTitles": "bttom title ใน FlTitlesData"},
+      'snore score': {"leftTitles" : "lefttitles ใน FlTitlesData ของsnore score","barGroups" : "barGroups data ใน barGroups ของ snore score"},
+      'snore%': {"leftTitles" : "lefttitles ใน FlTitlesData ของsnore%","barGroups" : "barGroups data ใน barGroups ของ snore%"},
+      'lound%': {"leftTitles" : "lefttitles ใน FlTitlesData ของlound%","barGroups" : "barGroups data ใน barGroups ของ lound%"},
+      'very lound%': {"leftTitles" : "lefttitles ใน FlTitlesData ของvery lound%","barGroups" : "barGroups data ใน barGroups ของ very lound%"},
+      'quiet%': {"leftTitles" : "lefttitles ใน FlTitlesData ของquiet%","barGroups" : "barGroups data ใน barGroups ของ quiet%"},
+      'undetected%': {"leftTitles" : "lefttitles ใน FlTitlesData ของundetected%","barGroups" : "barGroups data ใน barGroups ของ undetected%"},
+      'undetected': {"leftTitles" : "lefttitles ใน FlTitlesData ของundetected","barGroups" : "barGroups data ใน barGroups ของ undetected"},
+      'quiet': {"leftTitles" : "lefttitles ใน FlTitlesData ของquiet","barGroups" : "barGroups data ใน barGroups ของ quiet"},
+      'sleeptime': {"leftTitles" : "lefttitles ใน FlTitlesData ของsleeptime","barGroups" : "barGroups data ใน barGroups ของ sleeptime"},
+    },
+  };
+
+จาก allData นี้ bottomtitle ,lefttitle,bargroups จะเป็น class ของ package fl_chart ต่อไปนี้จะเป็นการอธิบายว่า ประเภทข้อมูลการนอนต่างๆเช่น snore score ,snore% และอื่นๆคืออะไร
+
+
+
+1.snore score 
+ หมายถึง  lound(ที่แปลงเป็น ชม.และนาทีแล้ว เช่น 1:00hour) + verylound(ที่แปลงเป็น ชม.และนาทีแล้ว เช่น 0:20hour) = snore score โดยเอามาแค่หลัก ชม. และ นาที เช่น 1:20 hour 
+    -lefttitles ของ snore score คือชั่วโมงเริ่ม หรือขอเรียกว่า startY = 0:00 hour จนถึงจุดสิ้นสุด  หรือขอเรียกว่า endY = snorescore(snorescore ที่มากที่สุดจากแท่งกราฟsnorescoreทั้งหมดใน day หรือ week หรือ month ตามหัวข้อ) แล้วบวกเวลาไปอีก1ชม. ถ้าบวกไปแล้ว นาที ของค่าที่บวกไปแล้วไม่ใช่ xx:00hour เช่น 2:50hour ถ้าเกิดเหตุการณ์นี้จงใช้กฎดังต่อไปนี้ 1.ถ้า นาที น้อยกว่า 30 ให้ปัดนาทีทิ้งไปเช่น 2:29hour -> 2:00hour 2.ถ้า นาที มากกกว่า 30 ให้ปัดชั่วโมงขึ้นไปและปัดนาทีทิ้งไปไปเช่น 2:50hour -> 3:00hour
+    -bar graph ของ  snore score จะใช้เป็น rodStackItems เพื่อทำให้ข้อมูล lound(เริ่มจาก0 แล้วจบที่เวลาทั้งหมดของมัน) และ verylound(เริ่มจากเวลาจบของlound แล้วจบที่เวลาของ lound+เวลาทั้งหมดของ verylound) ซ่อนกันด้วยBarChartRodStackItem  และความสูงหรือค่าของ bargraphสูงเท่ากับ lound+verylound(เวลาทั้งหมดของ lound และ verylound )
+    - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 30 นาที โดย เวลาเริ่มต้นในแกนY  และ  เวลาสิ้นสุดในแกนY ไม่ต้องแสดง , vertical grid ไม่แสดง
+2.snore%
+ หมายถึง เปอร์เซ้นทั้งหมดของการกรน = ( ((lound+verylound) / (lound+verylound+quiet+apnea))*100 )
+    -lefttitles ของ snore% คือ ทั้งแต่0ถึง100 โดย ให้แสดงแค่ 0, 25, 75, 100
+    -bar graph ของ  snore% จะใช้เป็น rodStackItems เพื่อทำให้ข้อมูล lound(เริ่มจาก0 และจบที่ค่าเปอร์เซ็นของlound(หาเปอร์เซ้นของloundและทำเป็นdouble 2 ตำแหน่ง)) และ verylound(เริ่มจากค่าเปอร์เซ็นนของlound และจบที่ค่าเปอร์เซ็นของ verylound + lound(หาเปอร์เซ้นของveryloundและทำเป็นdouble 2 ตำแหน่ง))ซ่อนกันด้วยBarChartRodStackItem และความสูงหรือค่าของbargraph สูงเท่ากับ lound+verylound(ทั้งสองคือค่าintที่มาจากการหา เปอร์เซ้นของ lound และ verylound)
+    - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 25% คือ 25, 50, 75 , vertical grid ไม่แสดง
+ 3.lound% 
+หมายถึง เปอร์เซ็นทั้งหมดของการกรนประเภท lound = ((lound / (lound+verylound+quiet+apnea))*100)
+    -lefttitles ของ lound% คือ ทั้งแต่0ถึง100 โดย ให้แสดงแค่ 0, 25, 75, 100 
+    -bar graph ของ  lound% จะใช้เป็น BarChartRodData โดย lound(เริ่มจาก0 และจบที่ค่าเปอร์เซ็นของlound(หาเปอร์เซ้นของloundและทำเป็นdouble 2 ตำแหน่ง))และความสูงหรือค่าของ bargraphสูงเท่ากับ lound(เปอร์เซ้นของ lound)
+        - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 25% คือ 25 50 75, vertical grid ไม่แสดง
+4.very lound%
+หมายถึง เปอร์เซ็นทั้งหมดของการกรนประเภท very lound = ((very lound / (lound+verylound+quiet+apnea))*100)
+    -lefttitles ของ very lound% คือ ทั้งแต่0ถึง100 โดย ให้แสดงแค่ 0, 25, 75, 100 
+    -bar graph ของ  very lound% จะใช้เป็น BarChartRodData โดย very lound(เริ่มจาก0 และจบที่ค่าเปอร์เซ็นของlound(หาเปอร์เซ้นของloundและทำเป็นdouble 2 ตำแหน่ง))และความสูงหรือค่าของ bargraphสูงเท่ากับ very lound(เปอร์เซ้นของ very lound)
+        - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 25% คือ 25 50 75, vertical grid ไม่แสดง
+5.undetected
+หมายถึง เวลาทั้งหมดของการการหยุดหายใจ undetected(ที่แปลงเป็น ชม.และนาทีแล้ว เช่น 1:00 hour)
+     -lefttitles ของ undetected คือชั่วโมงเริ่ม หรือขอเรียกว่า startY = 0:00 hour จนถึงจุดสิ้นสุด  หรือขอเรียกว่า endY = apnea(apnea ที่มากที่สุดจากแท่งกราฟapneaทั้งหมดใน day หรือ week หรือ month ตามหัวข้อ) แล้วบวกเวลาไปอีก1ชม. ถ้าบวกไปแล้ว นาที ของค่าที่บวกไปแล้วไม่ใช่ xx:00hour เช่น 2:50hour ถ้าเกิดเหตุการณ์นี้จงใช้กฎดังต่อไปนี้ 1.ถ้า นาที น้อยกว่า 30 ให้ปัดนาทีทิ้งไปเช่น 2:29hour -> 2:00hour 2.ถ้า นาที มากกกว่า 30 ให้ปัดชั่วโมงขึ้นไปและปัดนาทีทิ้งไปไปเช่น 2:50hour -> 3:00hour
+    -bar graph ของ  undetected จะใช้เป็น BarChartRodData โดย undetected(เริ่มจาก0 แล้วจบที่เวลาทั้งหมดของมัน)และความสูงหรือค่าของ bargraphสูงเท่ากับ apnea(เวลาทั้งหมดของ apnea)
+        - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 30 นาที โดย เวลาเริ่มต้นในแกนY  และ  เวลาสิ้นสุดในแกนY ไม่ต้องแสดง , vertical grid ไม่แสดง
+6.undetected%
+หมายถึง เปอร์เซ็นทั้งหมดของการหยุดหายใจ = ((apnea / (lound+verylound+quiet+apnea))*100)
+    -lefttitles ของ undetected% คือ ทั้งแต่0ถึง100 โดย ให้แสดงแค่ 0, 25, 75, 100 
+    -bar graph ของ  undetected% จะใช้เป็น BarChartRodData โดย undetected(เริ่มจาก0 และจบที่ค่าเปอร์เซ็นของapnea(หาเปอร์เซ้นของapneaและทำเป็นdouble 2 ตำแหน่ง))และความสูงหรือค่าของ bargraphสูงเท่ากับ apnea(เปอร์เซ้นของ apnea)
+        - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 25% คือ 25 50 75, vertical grid ไม่แสดง
+7.quiet
+หมายถึง เวลาทั้งหมดของการการหายใจเงียบ =  quiet(ที่แปลงเป็น ชม.และนาทีแล้ว เช่น 1:00 hour)
+     -lefttitles ของ quiet คือชั่วโมงเริ่ม หรือขอเรียกว่า startY = 0:00 hour จนถึงจุดสิ้นสุด  หรือขอเรียกว่า endY = quiet(quiet ที่มากที่สุดจากแท่งกราฟquietทั้งหมดใน day หรือ week หรือ month ตามหัวข้อ) แล้วบวกเวลาไปอีก1ชม. ถ้าบวกไปแล้ว นาที ของค่าที่บวกไปแล้วไม่ใช่ xx:00hour เช่น 2:50hour ถ้าเกิดเหตุการณ์นี้จงใช้กฎดังต่อไปนี้ 1.ถ้า นาที น้อยกว่า 30 ให้ปัดนาทีทิ้งไปเช่น 2:29hour -> 2:00hour 2.ถ้า นาที มากกกว่า 30 ให้ปัดชั่วโมงขึ้นไปและปัดนาทีทิ้งไปไปเช่น 2:50hour -> 3:00hour
+    -bar graph ของ  quiet จะใช้เป็น BarChartRodData โดย quiet(เริ่มจาก0 แล้วจบที่เวลาทั้งหมดของมัน)และความสูงหรือค่าของ bargraphสูงเท่ากับ quiet(เวลาทั้งหมดของ quiet)
+        - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 30 นาที โดย เวลาเริ่มต้นในแกนY  และ  เวลาสิ้นสุดในแกนY ไม่ต้องแสดง , vertical grid ไม่แสดง
+8.quiet%
+หมายถึง เปอร์เซ็นทั้งหมดของการหายใจเงียบ = ((quiet / (lound+verylound+quiet+apnea))*100)
+    -lefttitles ของ quiet% คือ ทั้งแต่0ถึง100 โดย ให้แสดงแค่ 0, 25, 75, 100 
+    -bar graph ของ  quiet% จะใช้เป็น BarChartRodData โดย quiet(เริ่มจาก0 และจบที่ค่าเปอร์เซ็นquiet(หาเปอร์เซ้นquietและทำเป็นdouble 2 ตำแหน่ง))และความสูงหรือค่าของ bargraphสูงเท่ากับ quiet(เปอร์เซ้นของ quiet)
+        - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 25% คือ 25 50 75, vertical grid ไม่แสดง
+9.sleeptime
+หมายถึง เวลาทั้งหมดของการการนอน sleeptime = (lound+verylound+quiet+apnea)ที่แปลงเป็น ชม.และนาทีแล้ว เช่น 8:00 hour
+     -lefttitles ของ sleeptime คือชั่วโมงเริ่ม หรือขอเรียกว่า startY = 0:00 hour จนถึงจุดสิ้นสุด  หรือขอเรียกว่า endY = sleeptime(sleeptime ที่มากที่สุดจากแท่งกราฟsleeptimeทั้งหมดใน day หรือ week หรือ month ตามหัวข้อ) แล้วบวกเวลาไปอีก1ชม. ถ้าบวกไปแล้ว นาที ของค่าที่บวกไปแล้วไม่ใช่ xx:00hour เช่น 2:50hour ถ้าเกิดเหตุการณ์นี้จงใช้กฎดังต่อไปนี้ 1.ถ้า นาที น้อยกว่า 30 ให้ปัดนาทีทิ้งไปเช่น 2:29hour -> 2:00hour 2.ถ้า นาที มากกกว่า 30 ให้ปัดชั่วโมงขึ้นไปและปัดนาทีทิ้งไปไปเช่น 2:50hour -> 3:00hour
+    -bar graph ของ  sleeptime จะใช้เป็น BarChartRodData โดย sleeptime(เริ่มจาก0 แล้วจบที่เวลาทั้งหมดของมัน)และความสูงหรือค่าของ bargraphสูงเท่ากับ sleeptime(เวลาทั้งหมดของ quiet)
+        - เส้นgrid ให้เส้นhorizontol grid แสดงทุกๆ 30 นาที โดย เวลาเริ่มต้นในแกนY  และ  เวลาสิ้นสุดในแกนY ไม่ต้องแสดง , vertical grid ไม่แสดง
+
+จากข้อมูลข้างต้นก็ได้บอกไว้ละเอียดแล้วว่าประเภทข้อมูลการนอนแต่ละแบบคืออะไร ต่อไปนี้จะเป็นการอธิบายว่า day ,weekและmonthที่ครอบประเภทข้อมูลการนอนไว้คืออะไร และมีความสัมพัธ์กับประเภทข้อมูลการนอนแต่ละแบบยังไง
+
+1).day 
+ หมายถึง การแสดงผลเป็นวัน ใน bottomtitles 
+1.1 โดยtitles ที่ x=1 หรือ แท่งกราฟแรก จะเริ่มต้นที่วันที่แรกของsessionทั้งหมด เช่น session1["starttime"] คือ 12/11/2025 โดยการแสดงผลจะเป็นแบบนี้ "Mon.(วัน)2 NOV."(วันที่และเดือน) 
+1.2 โดยtitles ที่ x= สุดท้าย หรือ แท่งกราฟสุดท้าย จะจบที่วันสุดท้ายของsessionทั้งหมด เช่น sessionสุดท้าย/ล่าสุด["starttime"] คือ 2/12/2025 โดยการแสดงผลจะเป็นแบบนี้ "Sat.(วัน)5 DEC."(วันที่และเดือน) 
+1.3 title ที่อยู่ระหว่าง titlesเริ่มต้น และ titilesสิ้นสุด ให้มี titlesตามปกติวันต่อวันไปจนถึงวันสุดท้าย แม้ในวันนั้นๆจะไม่มีข้อมูลsessionในวันนั้นๆก็ตาม เช่น  "Mon. 2 Nov"(มีsessionในวันนั้นๆ)--- "Mon. 3 Nov"(มีsessionในวันนั้นๆ)--- "Mon. 4 Nov"(ไม่มีsessionในวันนั้นๆ)--- "Mon. 5 Nov"(มีsessionในวันนั้นๆ)
+1.4 ความสัมพันะระหว่าง dayซึ่งเป็นbottomtitles กับ ข้อมูลแบบต่างๆ เช่น snore score, snore% ขออณุญาติเรียกข้อมูลพวกนี้ว่า sleepdatatype และอื่นๆทั้งหมด9แบบ ความสัมพันธ์คือ วันแต่ละวันของ day จะใช้ข้อมูลโดยตรงจากsleepdatatypeในรูปแบบนั่นๆ เช่น "Mon. 2 Nov"(day) ก็จะจับคู่กับ sleepdatatypeในรูปแบบนั่นๆ ที่วันที่ตรงกัน 
+2).week 
+ หมายถึง การแสดงผลเป็นสัปดาห์ ใน bottomtitles 
+2.1 โดยtitles ที่ x=1 หรือ แท่งกราฟแรก จะเริ่มต้นที่วันโดยคำนวณจากsessionแรกของsessionทั้งหมด เช่น session1["starttime"] คือ 25/11/2025 สมมุติว่าตรงกับวันจันทร์  จะได้ 24/11/2025 - 30/11/2025 นั่นหมายถึงจะเริ่มนับตั้งแต่วันอาทิตย์ของสัปดาห์นั่นๆและจบที่วันเสาร์ของสัปดหานั้นๆ หรือก็คือ1สัปดาห์ โดยการแสดงผลจะเป็นแบบนี้ "24 NOV.-30 NOV."*(วันที่และเดือน) 
+2.2 โดยtitles ที่ x= สุดท้าย หรือ แท่งกราฟสุดท้าย จะเริ่มต้นที่วันโดยคำนวณจากsessionสุดท้ายของsessionทั้งหมด เช่น sessionสุดท้าย/ล่าสุด["starttime"] คือ คือ 5/12/2025 สมมุติว่าตรงกับวันเสาร์  จะได้  29/11/2025 - 4/12/2025 นั่นหมายถึงจะเริ่มนับตั้งแต่วันอาทิตย์ของสัปดาห์นั่นๆและจบที่วันเสาร์ของสัปดหานั้นๆ หรือก็คือ1สัปดาห์ โดยการแสดงผลจะเป็นแบบนี้ "29 NOV.-4 DEC."*(วันที่และเดือน) 
+2.3 title ที่อยู่ระหว่าง titlesเริ่มต้น และ titilesสิ้นสุด ให้มี titlesตามปกติเป็นสัปดาห์ต่อสัปดาห์จนไปถึงสัปดาห์สุดท้าย แม้ในสัปดาห์นั้นๆจะไม่มีข้อมูลsessionในสัปดาห์นั้นๆก็ตาม เช่น  
+"24 NOV.-30 NOV."(มีsessionในสัปดาห์นั้นๆ)---"1 DEC.-7 DEC."(มีsessionในสัปดาห์นั้นๆ)---"8 DEC.-14 DEC."(ไม่มีsessionในสัปดาห์นั้นๆ)---"14 DEC.-20 DEC."(มีsessionในสัปดาห์นั้นๆ)
+2.4 ความสัมพันะระหว่าง monthซึ่งเป็นbottomtitles กับ ข้อมูลแบบต่างๆ เช่น snore score ,snore% ขออณุญาติเรียกข้อมูลพวกนี้ว่า sleepdatatype และอื่นๆทั้งหมด9แบบ ความสัมพันธ์คือ สัปดาห์แต่ละสัปดาห์ของ week 
+จะใช้ข้อมูลเฉลี่ยจากsleepdatatypeในรูปแบบนั่นๆ  นั่นหมายถึง sleepdatatypeในรูปแบบนั่นๆทั้งหมดที่อยู่ในช่วงเวลาของสัปดาห์นั่นๆ เช่น "8 DEC.-14 DEC."(week) sleepdatatypeในรูปแบบนั่นๆที่มีวันที่ตั่งแต่ 8 ธันวาคม - 14 จะถือว่าเป็นข้อมูลในช่วงเวลลานั้น หลังจากนั่นก็จะเอาค่าของ sleepdatatypeในรูปแบบนั่นๆ มาหาค่าเฉลี่ย เช่น undetected เราก็เอาค่า undetected ก็แต่ละsessionมาหาค่าเฉลี่ย แล้วนำมาแสดงผลเป็นแท่งกราฟ ,snore score เราก็เอาค่าแต่ละค่าของsnore scoreมาหาค่าเฉลี่ย คือ lound และ very lound โดยหาค่าเฉลี่ยแยกกันแล้วค่อยนำมารวมกัน หลังจากนั้นการแสดงผลคือ จะใช้ข้อมูลที่หาค่าเฉลี่ยแล้วมาแสดงตามสัปดาห์เช่น "8 DEC.-14 DEC." ก็จะจับคู่กับ sleepdatatypeในรูปแบบนั่นๆที่เรานำมาหาค่าเฉลี่ยแล้ว
+3).month
+ หมายถึง การแสดงผลเป็นเดือน ใน bottomtitles 
+3.1 โดยtitles ที่ x=1 หรือ แท่งกราฟแรก จะเริ่มต้นที่วันโดยคำนวณจากsessionแรกของsessionทั้งหมด เช่น session1["starttime"] คือ 25/11/2025 จะได้ 11(เดือน)/2025(ปี) โดยการแสดงผลจะเป็นแบบนี้ "NOV. 2025"(เดือนและปี)
+3.2 โดยtitles ที่ x= สุดท้าย หรือ แท่งกราฟสุดท้าย จะเริ่มต้นที่วันโดยคำนวณจากsessionสุดท้ายของsessionทั้งหมด เช่น sessionสุดท้าย/ล่าสุด["starttime"] คือ คือ 5/12/2025 จะได้ 12(เดือน)/2025(ปี) โดยการแสดงผลจะเป็นแบบนี้ "DEC. 2025"(เดือนและปี)
+3.3 title ที่อยู่ระหว่าง titlesเริ่มต้น และ titilesสิ้นสุด ให้มี titlesตามปกติเป็นเดือนต่อเดือนจนไปถึงเดือนสุดท้าย แม้ในเดือนนั้นๆจะไม่มีข้อมูลsessionในเดือนนั้นๆก็ตาม เช่น  
+"NOV. 2025"(มีsessionในเดือนนั้นๆ)---"DEC. 2025"(มีsessionในเดือนนั้นๆ)---"JAN. 2026"(ไม่มีsessionในเดือนนั้นๆ)---"14 DEC.-20 DEC."(มีsessionในเดือนนั้นๆ)
+3.4 ความสัมพันะระหว่าง monthซึ่งเป็นbottomtitles กับ ข้อมูลแบบต่างๆ เช่น snore score ,snore% ขออณุญาติเรียกข้อมูลพวกนี้ว่า sleepdatatype และอื่นๆทั้งหมด9แบบ ความสัมพันธ์คือ เดือนแต่ละเดือนของ month
+จะใช้ข้อมูลเฉลี่ยจากsleepdatatypeในรูปแบบนั่นๆ  นั่นหมายถึง sleepdatatypeในรูปแบบนั่นๆทั้งหมดที่อยู่ในช่วงเวลาของเดือนนั่นๆ เช่น "NOV. 2025"(month) sleepdatatypeในรูปแบบนั่นๆที่มีวันที่ตั่งแต่ 1 ธันวาคม - 31 จะถือว่าเป็นข้อมูลในช่วงเวลลานั้น หลังจากนั่นก็จะเอาค่าของ sleepdatatypeในรูปแบบนั่นๆ มาหาค่าเฉลี่ย เช่น undetected เราก็เอาค่า undetected ก็แต่ละsessionมาหาค่าเฉลี่ย แล้วนำมาแสดงผลเป็นแท่งกราฟ ,snore score เราก็เอาค่าแต่ละค่าของsnore scoreมาหาค่าเฉลี่ย คือ lound และ very lound โดยหาค่าเฉลี่ยแยกกันแล้วค่อยนำมารวมกัน หลังจากนั้นการแสดงผลคือ จะใช้ข้อมูลที่หาค่าเฉลี่ยแล้วมาแสดงตามเดือนเช่น "NOV. 2025" ก็จะจับคู่กับ sleepdatatypeในรูปแบบนั่นๆที่เรานำมาหาค่าเฉลี่ยแล้ว
+
+จากข้อมูลข้างต้นก็ได้บอกถึงวิธีการแสดงผลในฐานะclass ของ fl_chart และความสัมพันธ์กับข้อมูลการนอนประภทต่างๆไปแล้ว แต่ไปนี้คือรายละเอียดของ functionที่เราต้องการ
+
+1.จงสร้างclass สำหรับ control ข้อมูลกราฟทุอย่าง และการใช้function ทุกอย่างจะต้องผ่าน class control ตัวนี้ ต่อไปนี้คือตัวอย่าง
+
+class SleepTrendController {
+  Map<String, Map<String, Map<String,dynamic>>>? allsessionfielddata;
+
+  Future<bool> loadAllSession {
+    // โหลดข้อมูลของsessionทั้งหมดเท่าที่จำเป็น ค่า field ของsession
+  }
+
+  Map<String, Map<String, Map<String,dynamic>>> getAnalyzeSleepData() {
+    // return allsessionfielddata
+  }
+}
+
+2.ใน fl_chart สามารสร้างeventเมื่อมีการกดกราฟแท่งนั้นๆได้ สิ่งที่ต้องการคือ เมื่อกดที่แท่งกราฟนั้นๆจะทำการ บันทึกค่าลงในตัวแปรบางอย่างเป็นMap เช่น
+
+Map<String,dynamic> barchartdetail = {
+  "date" : "1 NOV. - 7 NOV> 2025",
+  "session" : 5 (ใช้5sessionในสัปดาห์นี้),
+  "changed" : 10 (การเปลี่ยนแปลงค่าในช่วงเวลานี้โดยเปรียบเทียบกับช่วงเวลาก่อนหน้า นับเป็นเปอร์เซ้น หากเป็นกราฟแท่งแรกจะเป็นnull),
+  "goodbad" : "good" (หากการเปลี่ยนแปลงนั่นเมื่อchangeเพิ่มขึ้นเป็นผลดี จะเป็นgood แต่ถ้าไม่จะเป็น bad) 
+};   
+
+โดยนำค่าไปใส่ในwidgetเพื่อแสดงค่าออกมา
+
+นี้คือสิ่งที่อยากเพิ่มเติม
+1.idใน firebase คือ int
+2.กราฟที่แสดงค่าคือ Barchart
+3.หากกลัวว่าใน1วันมีมากกว่า 1 session ไม่ต้องกังวลเพราะในฐานข้อมูลจะมีแค่1วัน1session
+3.ช่วยยกตัวอย่างการใช้แต่ละfunction รวมถึงยกตัวอย่างการใช้งานร่วมกันเป็นระบบทั้งหมด
+
+นี้คือคำถาม
+1.มีข้อสงสัยอะไรมั้ยเช่น บางอย่างที่สับสน ไม่ชัดเจน ขาดข้อมูล 
+2.มีอะไรที่อยากแนะนำมั้ยในการทำระบบนี้เช่น มีวิธีการในบางจุดที่ดีกว่าแล้วอยากจะแนะนำ ถ้ามีช่วยบอกจุดอ่อนของวิธ๊เก่าและบอกข้อดีของวิธีใหม่และบอกวิธีการทำคล่าว
+

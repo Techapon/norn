@@ -249,9 +249,7 @@ void MyDiaologAlert({
                               borderRadius: BorderRadius.circular(0),
                             ),
                           ),
-                          onPressed: () async{
-                            
-                          },
+                          onPressed: onpressed,
                           child: Text("${yesText}",style:  GoogleFonts.itim(fontSize: 17.5),)
                         ),
                       ),
