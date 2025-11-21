@@ -52,20 +52,6 @@ class settingElement extends StatelessWidget {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // profile
 Widget buildprofile({
   required String name,

@@ -112,6 +112,8 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
     super.dispose();
   }
 
+
+  // UX/UI
   @override
   Widget build(BuildContext context) {
 
@@ -178,24 +180,24 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                       ),
                     ],
                   ),
-
+                  
+                  // Sleep datatype widget
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       SleepdataSelector(controller: controller),
                     ],
-                  ),
-              
-                  PreriodSelector(controller: controller,),
-                  
+                  ),  
+
                   // Chart
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildChart(controller),
-                    ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 20,bottom: 13),
+                    child: _buildChart(controller),
                   ),
-              
+
+                  PreriodSelector(controller: controller,),
+
+                  SizedBox(height: 15,),
                   // Selected Bar Details
                   _buildBarDetailsWrapper(controller),
                     // _buildBarDetails(controller.selectedMetrics!),
@@ -308,16 +310,17 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
         clipBehavior: Clip.none,
         scrollDirection: Axis.horizontal,
         child: SizedBox(
+          height: 275,
           width:  totalMinWidth,
-          child: Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: chartWidget,
-          ),
+          child: chartWidget,
         ),
       );
     }
 
-    return chartWidget;
+    return SizedBox(
+      height: 275,
+      child: chartWidget,
+    );
   }
 
   List<BarChartGroupData> _createBarGroups(List<ChartBarData> chartData) {

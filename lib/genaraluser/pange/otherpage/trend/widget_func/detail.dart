@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/graph/trendgraph.dart';
 
 // DETAIL WIDGET
@@ -19,26 +20,34 @@ class buildBarDetailsState extends State<buildBarDetails> {
     SleepMetrics metrics = widget.metrics;
     SleepTrendController controller = widget.controller;
 
+    List<Color> headColor =[Colors.black,Color(0xFF3373A6)];
+
     return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blueGrey[200]!),
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Date Range
           Row(
             children: [
-              Icon(Icons.calendar_today, size: 16, color: Colors.blueGrey),
+              // Icon
+              detailIcon(Icon(Icons.calendar_today_outlined,size: 30, color: Colors.black)),
+
               SizedBox(width: 8),
               Text(
-                metrics.dateRange,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                "${metrics.dateRange}",
+                style: GoogleFonts.itim(
+                  fontSize: 18.5,
+                  fontWeight: FontWeight.w600,
+                  color: headColor[0]
+                ),
+              ),
+              Text(
+                "${metrics.dateRange2}",
+                style: GoogleFonts.itim(
+                  fontSize: 18.5,
+                  fontWeight: FontWeight.w600,
+                  color: headColor[1]
                 ),
               ),
             ],
@@ -48,14 +57,22 @@ class buildBarDetailsState extends State<buildBarDetails> {
           
           // Session Count
           Row(
+
             children: [
-              Icon(Icons.night_shelter, size: 16, color: Colors.blueGrey),
+
+              detailIcon(Icon(Icons.list,size: 30, color: Colors.black)),
               SizedBox(width: 8),
               Text(
-                '${metrics.sessionCount} session${metrics.sessionCount > 1 ? 's' : ''}',
-                style: TextStyle(fontSize: 14),
+                'Used ${metrics.sessionCount} ',
+                style: GoogleFonts.itim(fontSize: 18.5,color: headColor[1],fontWeight: FontWeight.w600,),
               ),
+              Text(
+                'time${metrics.sessionCount > 1 ? 's' : ''} this ${metrics.preroid}',
+                style: GoogleFonts.itim(fontSize: 18.5,color: headColor[0],fontWeight: FontWeight.w600,),
+              ),
+               
             ],
+
           ),
 
           // Change Percentage (if available)
@@ -63,26 +80,28 @@ class buildBarDetailsState extends State<buildBarDetails> {
           SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                metrics.changePercent == null
-                ? Icons.close_sharp
-                : metrics.changePercent! > 0 ? Icons.arrow_upward :  Icons.arrow_downward ,
-                size: 16,
-                color: metrics.changePercent == null
-                ? Colors.blueGrey
-                : metrics.isGood ? Colors.green : Colors.red,
+              detailIcon(
+                Icon(
+                  metrics.changePercent == null
+                  ? Icons.close_sharp
+                  : metrics.changePercent! > 0 ? Icons.trending_up_rounded :  Icons.trending_down_rounded ,
+                  size: 30,
+                  color: metrics.changePercent == null
+                  ? Colors.blueGrey
+                  : metrics.isGood ? Color.fromARGB(255, 84, 192, 87) : Colors.red,
+                ),
               ),
               SizedBox(width: 8),
               Text(
                 metrics.changePercent != null 
                 ? '${metrics.changePercent!.abs().toStringAsFixed(1)}% ${widget.isPercentageType(controller.selectedType) ? 'point ' : ''}${metrics.isGood ? 'improvement' : 'decline'}'
                 : "Not specified",
-                style: TextStyle(
-                  fontSize: 14,
+                style: GoogleFonts.itim(
+                  fontSize: 18.5,
                   color: metrics.changePercent == null
                   ? Colors.black
-                  :metrics.isGood ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.w500,
+                  :metrics.isGood ?  Color.fromARGB(255, 84, 192, 87) : Colors.red,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -92,4 +111,16 @@ class buildBarDetailsState extends State<buildBarDetails> {
       ),
     );
   }
+}
+
+
+Widget detailIcon(Icon icon) {
+  return Container(
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Color.fromARGB(255, 171, 213, 230),
+    ),
+    padding: EdgeInsets.all(12), 
+    child: icon, 
+  ); 
 }

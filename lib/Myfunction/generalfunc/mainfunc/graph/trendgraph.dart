@@ -84,6 +84,8 @@ class SleepSession {
 // Sleep Metrics for Bar Detail
 class SleepMetrics {
   final String dateRange;
+  final String dateRange2;
+  final String? preroid;
   final int sessionCount;
   final double? changePercent; // null สำหรับแท่งแรก
   final bool isGood;
@@ -91,6 +93,8 @@ class SleepMetrics {
 
   SleepMetrics({
     required this.dateRange,
+    required this.dateRange2,
+    this.preroid,
     required this.sessionCount,
     this.changePercent,
     required this.isGood,
@@ -249,22 +253,38 @@ class ChartTitleGenerator {
 
   // ------------- DETIAL PART ------------------
     // ---------detail
-  static String formatDayDetailTitle(DateTime date) {
-    final dayFormat = DateFormat('E', 'en_US'); // Mon, Tue, etc.
-    final dateFormat = DateFormat('d MMM', 'en_US'); // 2 NOV
+  static List<String> formatDayDetailTitle(DateTime date) {
+    final dayFormat = DateFormat('E d', 'en_US'); // Mon, Tue, etc.
+    final dateFormat = DateFormat('MMM', 'en_US'); // 2 NOV
 
-    return '${dayFormat.format(date)}. ${dateFormat.format(date).toUpperCase()}';
+    return [
+      '${dayFormat.format(date)}.',
+      ' ${dateFormat.format(date).toUpperCase()}'
+    ];
   }
 
-  static String formatWeekDetailTitle(DateTime weekStart) {
+  static List<String> formatWeekDetailTitle(DateTime weekStart) {
     DateTime weekEnd = weekStart.add(Duration(days: 6));
     final format = DateFormat('d MMM', 'en_US');
 
-    return '${format.format(weekStart).toUpperCase()} - ${format.format(weekEnd).toUpperCase()}';
+    return [
+      '${format.format(weekStart).toUpperCase()} ',
+      '- ${format.format(weekEnd).toUpperCase()}'
+    ];
   }
+
+  static List<String> formatMonthDetailTitle(DateTime date) {
+    final monthformat = DateFormat('MMM', 'en_US');
+    final yearformat = DateFormat('yyyy', 'en_US');
+    return [
+      '${monthformat.format(date).toUpperCase()} ',
+      '${yearformat.format(date).toUpperCase()}',
+    ];
+  }
+
     // Generate daily titles from start to end
-  static List<String> generateDailyDetialTitles(DateTime start, DateTime end) {
-    List<String> titles = [];
+  static List<List<String>> generateDailyDetialTitles(DateTime start, DateTime end) {
+    List<List<String>> titles = [];
     DateTime current = DateTime(start.year, start.month, start.day);
     DateTime endDate = DateTime(end.year, end.month, end.day);
 
@@ -277,8 +297,8 @@ class ChartTitleGenerator {
   }
 
   // Generate weekly titles
-  static List<String> generateWeeklyDetailTitles(DateTime start, DateTime end) {
-    List<String> titles = [];
+  static List<List<String>> generateWeeklyDetailTitles(DateTime start, DateTime end) {
+    List<List<String>> titles = [];
     DateTime weekStart = getWeekStart(start);
     DateTime endDate = getWeekStart(end);
 
@@ -288,6 +308,19 @@ class ChartTitleGenerator {
       weekStart = weekStart.add(Duration(days: 7));
     }
 
+    return titles;
+  }
+
+  static List<List<String>> generateMonthDetailTitles(DateTime start, DateTime end) {
+    List<List<String>> titles = [];
+    DateTime current = DateTime(start.year, start.month, 1);
+    DateTime endMonth = DateTime(end.year, end.month, 1);
+
+    while (
+        current.isBefore(endMonth) || current.isAtSameMomentAs(endMonth)) {
+      titles.add(formatMonthDetailTitle(current));
+      current = DateTime(current.year, current.month + 1, 1);
+    }
     return titles;
   }
 }
@@ -355,7 +388,9 @@ class SleepAnalysisService {
         bottomTitle: "${titles[i]}",
         rodData: rodData,
         metrics: SleepMetrics(
-          dateRange: detialtitle[i],
+          dateRange: detialtitle[i][0],
+          dateRange2: detialtitle[i][1],
+          preroid: "day",
           sessionCount: hasData ? 1 : 0,
           changePercent: changePercent,
           isGood: isGood,
@@ -425,7 +460,9 @@ class SleepAnalysisService {
         bottomTitle: titles[i],
         rodData: rodData,
         metrics: SleepMetrics(
-          dateRange: detialtitle[i],
+          dateRange: detialtitle[i][0],
+          dateRange2: detialtitle[i][1],
+          preroid: "week",
           sessionCount: weekSessions.length,
           changePercent: changePercent,
           isGood: isGood,
@@ -453,6 +490,7 @@ class SleepAnalysisService {
     final lastDate = sessions.last.startTime;
 
     final titles = ChartTitleGenerator.generateMonthlyTitles(firstDate, lastDate);
+    final detialtitle = ChartTitleGenerator.generateMonthDetailTitles(firstDate, lastDate);
 
     List<ChartBarData> chartData = [];
     DateTime current = DateTime(firstDate.year, firstDate.month, 1);
@@ -492,7 +530,9 @@ class SleepAnalysisService {
         bottomTitle: titles[i],
         rodData: rodData,
         metrics: SleepMetrics(
-          dateRange: titles[i],
+          dateRange: detialtitle[i][0],
+          dateRange2: detialtitle[i][1],
+          preroid: "month",
           sessionCount: monthSessions.length,
           changePercent: changePercent,
           isGood: isGood,
