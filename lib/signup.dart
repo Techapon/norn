@@ -7,6 +7,7 @@ import 'package:form_field_validator/form_field_validator.dart';
 import 'package:nornsabai/My_widget/My_textbutton.dart';
 import 'package:nornsabai/My_widget/My_textform.dart';
 import 'package:nornsabai/My_widget/Mybutton_log_and_sigup.dart';
+import 'package:nornsabai/Myfunction/My_findaccount.dart';
 import 'package:nornsabai/login.dart';
 import 'package:nornsabai/model/data_model/usermodel.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
@@ -29,33 +30,48 @@ class Signup extends StatelessWidget {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: userModel.email!.trim(),
         password: userModel.password!.trim()
-      ).then((value) {
+      ).then((value) async {
+
+        Future<bool> userExits = findNameExits(userModel.username!.trim());
+        
+        if (await userExits) {
+          toastification.show(
+            context: context,
+            title: Text("Error!",style: TextStyle(fontWeight: FontWeight.bold),),
+            description: Text("Your usename already exits!!!,Please try again",style: TextStyle(color: Colors.grey,fontSize: 12),),
+            type: ToastificationType.error,
+            style: ToastificationStyle.flat,
+            autoCloseDuration: Duration(seconds: 3),
+            animationDuration: Duration(milliseconds: 800)
+          );
+        }else {
+          addUserDetails(
+            userModel.username!.trim(),
+            userModel.password!.trim(),
+            userModel.email!.trim(),
+            userModel.phoneNumber,
+            userModel.whoareu!.trim()
+          );
+
+          formkey.currentState!.reset();
+          
+          // Toast
+          toastification.show(
+            context: context,
+            title: Text("Sign up is complete!",style: TextStyle(fontWeight: FontWeight.bold),),
+            description: Text("Let's Login!!",style: TextStyle(color: Colors.grey,fontSize: 12),),
+            type: ToastificationType.success,
+            style: ToastificationStyle.flat,
+            autoCloseDuration: Duration(seconds: 3),
+            animationDuration: Duration(milliseconds: 800)
+          );
+
+          Navigator.pushReplacement(context,MaterialPageRoute(
+            builder: (context) => LoginPage()
+          ));
+        }
 
         // add detail
-        addUserDetails(
-          userModel.username!.trim(),
-          userModel.password!.trim(),
-          userModel.email!.trim(),
-          userModel.phoneNumber,
-          userModel.whoareu!.trim()
-        );
-
-        formkey.currentState!.reset();
-        
-        // Toast
-        toastification.show(
-          context: context,
-          title: Text("Sign up is complete!",style: TextStyle(fontWeight: FontWeight.bold),),
-          description: Text("Let's Login!!",style: TextStyle(color: Colors.grey,fontSize: 12),),
-          type: ToastificationType.success,
-          style: ToastificationStyle.flat,
-          autoCloseDuration: Duration(seconds: 3),
-          animationDuration: Duration(milliseconds: 800)
-        );
-
-        Navigator.pushReplacement(context,MaterialPageRoute(
-          builder: (context) => LoginPage()
-        ));
       });
     }on FirebaseAuthException catch(e) {
       String message = "";
@@ -89,10 +105,6 @@ class Signup extends StatelessWidget {
         animationDuration: Duration(milliseconds: 800)
       );
     }
-
-    
-    
-
   }
 
   Future addUserDetails(

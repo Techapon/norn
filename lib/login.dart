@@ -60,9 +60,6 @@ class LoginPage extends StatelessWidget {
               return;
           }
         }
-
-        
-        
       });
 
     }on FirebaseAuthException catch (e) {

@@ -1,5 +1,8 @@
 import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:nornsabai/Myfunction/caretakerfunc/mainfunc/takecaresystem/carecontroller.dart';
+import 'package:nornsabai/caretaker/pange/list_care.dart';
+import 'package:nornsabai/caretaker/pange/profile_care.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 class CaretakerMainPage extends StatefulWidget {
@@ -14,18 +17,24 @@ class _GeneralMainPageState extends State<CaretakerMainPage> {
 
   Color navbarcolor = BgColor.BottomNav_bg.color_code;
 
+
+
   final List<Widget> _pages = [
-    Center(child: Text('List Page')),
+    ListCare(),
     Center(child: Text('Request Page')),
-    Center(child: Text('Profile Page')),
+    ProfileCare(),  
   ];
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: BgColor.Bg1.color_code,
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children:  _pages,
+      ),
 
       bottomNavigationBar: CircleNavBar(
         activeIndex: _currentIndex,

@@ -35,3 +35,42 @@ Future<Map<String, dynamic>?> findAccountByEmail(String email) async {
     return null;
   }
 }
+
+
+Future<bool> findNameExits(String username) async {
+  try {
+    // ตรวจใน General user
+    final generalResult = await FirebaseFirestore.instance
+        .collection('General user')
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
+
+    if (generalResult.docs.isNotEmpty) {
+      final doc = generalResult.docs.first;
+      print("Find User GE");
+      return true;
+    }
+
+    // ตรวจใน Caretaker
+    final caretakerResult = await FirebaseFirestore.instance
+        .collection('Caretaker')
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
+
+    if (caretakerResult.docs.isNotEmpty) {
+      final doc = caretakerResult.docs.first;
+      print("Find User Care");
+      return true;
+    }
+
+    return false;
+
+  } catch (e) {
+    print('Error finding account by username: $e');
+    return false;
+  }
+}
+
+

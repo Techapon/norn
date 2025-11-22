@@ -12,8 +12,8 @@ import 'package:nornsabai/model/reuse_model/color_model.dart';
 // import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 
-class ProfileGeneral extends StatelessWidget {
-  const ProfileGeneral({super.key});
+class ProfileCare extends StatelessWidget {
+  const ProfileCare({super.key});
 
   // find user
   Future<Map<String,dynamic>?> getuserprofile() async{
@@ -24,22 +24,7 @@ class ProfileGeneral extends StatelessWidget {
 
       final String userEmail = user.email!;
 
-      // find in user
-      final DocumentSnapshot GeneralUser = await FirebaseFirestore.instance
-            .collection("General user")
-            .doc(userEmail).get();
-
-      if (GeneralUser.exists) {
-        final userDoc = GeneralUser.data() as Map<String, dynamic>;
-        return {
-          "username": userDoc["username"],
-          "email": userDoc["email"],
-          "phoneNumber": userDoc["phoneNumber"],
-          "whoareu": userDoc["General"],
-        };
-      }
-
-      // find in user
+      // find in caretaker
       final DocumentSnapshot Caretaker = await FirebaseFirestore.instance
             .collection("Caretaker")
             .doc(userEmail).get();
@@ -60,9 +45,8 @@ class ProfileGeneral extends StatelessWidget {
       return null;
     }
   }
-
-
-  @override  
+  @override
+  
   Widget build(BuildContext context) {
     return Container(
       height: double.infinity,
@@ -132,41 +116,9 @@ class ProfileGeneral extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Request",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
-                  ],
-                ),
-              ),
-
-              // Sound setting
-              settingElement(
-                icon: Icons.mark_email_unread_outlined,
-                iconcolor: Color.fromARGB(255, 255, 139, 67),
-                title: "Request",
-                bold: false,
-                bg: false,
-                borderType: BorderRauisType.single,
-                onclick: (){}
-              ),
-
-              Padding(
-                padding: EdgeInsets.only(top: 3.5,bottom: 3.5,left: 15),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
                     Text("App Setting",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
                   ],
                 ),
-              ),
-
-              // Sound setting
-              settingElement(
-                icon: Icons.volume_up_outlined,
-                iconcolor: Color(0xFF6CC7E0),
-                title: "Sound setting",
-                bold: false,
-                bg: false,
-                borderType: BorderRauisType.top,
-                onclick: (){}
               ),
 
               // Notifications
@@ -176,65 +128,11 @@ class ProfileGeneral extends StatelessWidget {
                 title: "Notifications",
                 bold: false,
                 bg: false,
-                borderType: BorderRauisType.center,
+                borderType: BorderRauisType.single,
                 onclick: (){}
               ),
 
-              // Audio file capacity
-              settingElement(
-                icon: Icons.folder_copy_outlined,
-                iconcolor: Color(0xFFEDDC81),
-                title: "Audio file capacity",
-                bold: false,
-                bg: false,
-                borderType: BorderRauisType.bottom,
-                onclick: (){}
-              ),
-
-              Padding(
-                padding: EdgeInsets.only(top: 3.5,bottom: 3.5,left: 15),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text("Sleep Quality",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
-                  ],
-                ),
-              ),
-
-              // Health
-              settingElement(
-                icon: Icons.health_and_safety_outlined,
-                iconcolor: Color(0xFF6CC7E0),
-                title: "Health",
-                bold: false,
-                bg: false,
-                borderType: BorderRauisType.top,
-                onclick: (){}
-              ),
-
-              // Sleep apnea risk assessment
-              settingElement(
-                icon: Icons.assessment,
-                iconcolor: Color(0xFF8B56C3),
-                title: "Sleep apnea risk assessment",
-                bold: false,
-                bg: false,
-                borderType: BorderRauisType.center,
-                onclick: (){}
-              ),
-
-              // A tailored solution for you
-              settingElement(
-                icon: Icons.check_box_outlined,
-                iconcolor: Color(0xFF5DC764),
-                title: "A tailored solution for you",
-                bold: false,
-                bg: false,
-                borderType: BorderRauisType.bottom,
-                onclick: (){}
-              ),
-
-
+             
               Padding(
                 padding: EdgeInsets.only(top: 3.5,bottom: 3.5,left: 15),
                 child: Row(
@@ -305,9 +203,9 @@ class ProfileGeneral extends StatelessWidget {
                   );
                 },
                 child: Text("Log out",style: GoogleFonts.itim(color: Colors.white,fontSize: 22,fontWeight: FontWeight.w500),)
-                ),
+              ),
 
-                SizedBox(height: 20,),
+              SizedBox(height: 20,),
             ],
           )
         ),

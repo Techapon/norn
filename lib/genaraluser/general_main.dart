@@ -24,7 +24,7 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
     ResultGaneral(),
     TrendGaneral(),
     Center(child: Text('search Page')),
-    ProfileGeneral(),
+    ProfileGeneral()
   ];
 
   @override
