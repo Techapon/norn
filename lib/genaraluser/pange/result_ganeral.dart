@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
-import 'package:nornsabai/Myfunction/generalfunc/mainfunc/graph/dailygraph.dart';
+import 'package:nornsabai/Myfunction/globalFunc/dailygraph.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/result/widget_func/calendar.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 class ResultGaneral extends StatefulWidget {
-  // const ResultGaneral({Key? key}) : super(key: key);
+  final String userDocId;
+
+  ResultGaneral({required this.userDocId});
 
   @override
   State<ResultGaneral> createState() => ResultGaneralState();
@@ -17,7 +19,7 @@ class ResultGaneral extends StatefulWidget {
 class ResultGaneralState extends State<ResultGaneral> {
   // Calendar
 
-  final controller = SleepController();
+  late SleepController controller;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -39,6 +41,7 @@ class ResultGaneralState extends State<ResultGaneral> {
   @override
   void initState() {
     super.initState();
+    controller = SleepController(userDocId: widget.userDocId);
     _loadData();
   }
 
@@ -487,6 +490,7 @@ class ResultGaneralState extends State<ResultGaneral> {
                       context: context,
                       dots: controller.allDots,
                       sessionData: controller.sessionData ?? {},
+                      docId:  widget.userDocId
                     ),
                   ),
                   
@@ -537,7 +541,7 @@ class ResultGaneralState extends State<ResultGaneral> {
                               // pie charts
                               Container(
                                 height: 160,
-                                width: 150,
+                                width: 140,
                                 // padding: ,
                                 decoration: BoxDecoration(
                                   color: Colors.blue[200],

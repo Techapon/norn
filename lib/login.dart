@@ -42,7 +42,7 @@ class LoginPage extends StatelessWidget {
         );
 
         final account = await findAccountByEmail(userModel.email!.trim());
-        print(account);
+        print("------${account}");
         if (account != null) {
           switch (account["type"]) {
             case "General" :

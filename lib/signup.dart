@@ -122,7 +122,7 @@ class Signup extends StatelessWidget {
       case "Caretaker" :
         typeofuser = "Caretaker";
     }
-    await FirebaseFirestore.instance.collection(typeofuser).doc(email).set({
+    await FirebaseFirestore.instance.collection(typeofuser).doc().set({
       "username": username,
       "password": password,
       "email": email,

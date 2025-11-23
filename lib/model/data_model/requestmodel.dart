@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nornsabai/Myfunction/formatduration.dart';
 
+// ==================== Model Classes ====================
+
+/// Model สำหรับ Friend Request (เก็บแค่ ID และ metadata)
 class FriendRequestModel {
   final String docId;
   final int requestId;
-  final String? targetEmail;
-  // final String? targetUserId;
-  final String? fromCaretakerEmail;
+  final String? targetUserId;
+  final String? fromCaretakerId;
   final String status;
   final Timestamp? createdAt;
   final Timestamp? acceptedAt;
@@ -14,9 +17,8 @@ class FriendRequestModel {
   FriendRequestModel({
     required this.docId,
     required this.requestId,
-    this.targetEmail,
-    // this.targetUserId,
-    this.fromCaretakerEmail,
+    this.targetUserId,
+    this.fromCaretakerId,
     required this.status,
     this.createdAt,
     this.acceptedAt,
@@ -30,9 +32,8 @@ class FriendRequestModel {
     return FriendRequestModel(
       docId: docId,
       requestId: data['requestId'] ?? 0,
-      targetEmail: data['targetEmail'],
-      // targetUserId: data['targetUserId'],
-      fromCaretakerEmail: data['fromCaretakerId'],
+      targetUserId: data['targetUserId'],
+      fromCaretakerId: data['fromCaretakerId'],
       status: data['status'] ?? 'pending',
       createdAt: data['createdAt'] as Timestamp?,
       acceptedAt: data['acceptedAt'] as Timestamp?,
@@ -43,9 +44,8 @@ class FriendRequestModel {
   Map<String, dynamic> toMap() {
     return {
       'requestId': requestId,
-      'targetEmail': targetEmail,
-      // 'targetUserId': targetUserId,
-      'fromCaretakerId': fromCaretakerEmail,
+      'targetUserId': targetUserId,
+      'fromCaretakerId': fromCaretakerId,
       'status': status,
       'createdAt': createdAt,
       'acceptedAt': acceptedAt,
@@ -53,14 +53,89 @@ class FriendRequestModel {
     };
   }
 
-  String get formattedDate {
+  String get formattedCreate {
     final date = createdAt?.toDate();
     if (date == null) return 'N/A';
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
+
+  String get formattedAccept {
+    final date = acceptedAt?.toDate();
+    if (date == null) return 'N/A';
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  String get formattedDecline {
+    final date = declinedAt?.toDate();
+    if (date == null) return 'N/A';
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  String get requesttPass {
+    final date = createdAt?.toDate();
+    final DateTime nowday = DateTime.now();
+    if (date == null) return 'N/A';
+    final String passed = formatDuration(nowday.difference(date));
+    return passed;
+  }
+
+  String get acceptPass {
+    final date = acceptedAt?.toDate();
+    final DateTime nowday = DateTime.now();
+    if (date == null) return 'N/A';
+    final String passed = formatDuration(nowday.difference(date));
+    return passed;
+  }
+
+  String get declinePass {
+    final date = declinedAt?.toDate();
+    final DateTime nowday = DateTime.now();
+    if (date == null) return 'N/A';
+    final String passed = formatDuration(nowday.difference(date));
+    return passed;
+  }
+
+
 
   @override
   String toString() {
     return 'FriendRequestModel(docId: $docId, requestId: $requestId, status: $status)';
   }
 }
+
+/// Model สำหรับข้อมูล User (จาก user document)
+class UserData {
+  final String userId;
+  final String username;
+  final String email;
+
+  UserData({
+    required this.userId,
+    required this.username,
+    required this.email,
+  });
+
+  @override
+  String toString() {
+    return 'UserData(userId: $userId, username: $username, email: $email)';
+  }
+}
+
+/// Model รวม Request + User Data
+class FriendRequestWithUserData {
+  final FriendRequestModel request;
+  final UserData? targetUser; // สำหรับ Caretaker ใช้ดูข้อมูล General User
+  final UserData? caretaker; // สำหรับ General User ใช้ดูข้อมูล Caretaker
+
+  FriendRequestWithUserData({
+    required this.request,
+    this.targetUser,
+    this.caretaker,
+  });
+
+  @override
+  String toString() {
+    return 'FriendRequestWithUserData(request: $request, targetUser: $targetUser, caretaker: $caretaker)';
+  }
+}
+

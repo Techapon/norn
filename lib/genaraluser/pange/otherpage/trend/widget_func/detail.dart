@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nornsabai/Myfunction/generalfunc/mainfunc/graph/trendgraph.dart';
+import 'package:nornsabai/Myfunction/globalFunc/trendgraph.dart';
 
 // DETAIL WIDGET
 class buildBarDetails extends StatefulWidget {

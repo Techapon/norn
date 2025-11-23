@@ -121,15 +121,19 @@ class ChartBarData {
 
 class SleepSessionRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String email;
-  SleepSessionRepository({required this.email});
+  
+  final String userDocId;
+
+  SleepSessionRepository({required this.userDocId});
 
   Future<List<SleepSession>?> fetchAllSessions() async {
     try {
       // final userEmail = _auth.currentUser?.email;
+      // if (userEmail == null) return null;
+
       final snapshot = await _firestore
           .collection('General user')
-          .doc(email)
+          .doc(userDocId)
           .collection('sleepsession')
           .orderBy('startTime', descending: false)
           .get();
@@ -804,14 +808,12 @@ class SleepAnalysisService {
 // ============================================================================
 
 class SleepTrendController extends ChangeNotifier {
-  final String email;
-
-  late final SleepSessionRepository _repository;
+  final String userDocId;
+  final SleepSessionRepository _repository;
   final SleepAnalysisService _service = SleepAnalysisService();
 
-  SleepTrendController({required this.email}) {
-    _repository = SleepSessionRepository(email: email);
-  }
+  SleepTrendController({required this.userDocId}) 
+    :_repository = SleepSessionRepository(userDocId: userDocId);
 
   List<SleepSession>? _allSessions;
   PeriodType _selectedPeriod = PeriodType.day;

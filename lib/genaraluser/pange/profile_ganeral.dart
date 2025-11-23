@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/My_widget/My_settingElement.dart';
+import 'package:nornsabai/genaraluser/pange/otherpage/profile/sidepage/caretaker.dart';
+import 'package:nornsabai/genaraluser/pange/otherpage/profile/sidepage/request.dart';
 import 'package:nornsabai/login.dart';
 import 'package:nornsabai/model/reuse_model/bordertype_model.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
@@ -13,21 +15,18 @@ import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 
 class ProfileGeneral extends StatelessWidget {
-  const ProfileGeneral({super.key});
+  final String userDocId;
+
+  ProfileGeneral({required this.userDocId});
 
   // find user
   Future<Map<String,dynamic>?> getuserprofile() async{
     try {
       
-      final User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
-
-      final String userEmail = user.email!;
-
       // find in user
       final DocumentSnapshot GeneralUser = await FirebaseFirestore.instance
             .collection("General user")
-            .doc(userEmail).get();
+            .doc(userDocId).get();
 
       if (GeneralUser.exists) {
         final userDoc = GeneralUser.data() as Map<String, dynamic>;
@@ -38,22 +37,6 @@ class ProfileGeneral extends StatelessWidget {
           "whoareu": userDoc["General"],
         };
       }
-
-      // find in user
-      final DocumentSnapshot Caretaker = await FirebaseFirestore.instance
-            .collection("Caretaker")
-            .doc(userEmail).get();
-
-      if (Caretaker.exists) {
-        final userDoc = Caretaker.data() as Map<String, dynamic>;
-        return {
-          "username": userDoc["username"],
-          "email": userDoc["email"],
-          "phoneNumber": userDoc["phoneNumber"],
-          "whoareu": userDoc["Caretaker"],
-        };
-      }
-
 
     } catch (e) {
       print('Error fetching user profile: $e');
@@ -132,20 +115,35 @@ class ProfileGeneral extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Request",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
+                    Text("Caretaker",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
                   ],
                 ),
               ),
 
-              // Sound setting
+              // Caretaker
+              settingElement(
+                icon: Icons.people_rounded,
+                iconcolor: Color.fromARGB(255, 67, 186, 255),
+                title: "Caretaker",
+                bold: false,
+                bg: false,
+                borderType: BorderRauisType.top,
+                onclick: (){
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Caretaker(userdocid: userDocId,)));
+                }
+              ),
+              
+              // Request
               settingElement(
                 icon: Icons.mark_email_unread_outlined,
                 iconcolor: Color.fromARGB(255, 255, 139, 67),
                 title: "Request",
                 bold: false,
                 bg: false,
-                borderType: BorderRauisType.single,
-                onclick: (){}
+                borderType: BorderRauisType.bottom,
+                onclick: (){
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Request(userdocid: userDocId,)));
+                }
               ),
 
               Padding(

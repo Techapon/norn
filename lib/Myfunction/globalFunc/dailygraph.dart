@@ -12,10 +12,14 @@ import 'dart:math' as math;
 // ============================================================================
 
 class SleepController {
+  final String userDocId;
+
   Map<String, dynamic>? sessionData;
   List<DotDataPoint> allDots = [];
   List<DotDataPoint> overviewDots = [];
   int? _sessionId;
+
+  SleepController({required this.userDocId});
 
   bool get isLoaded => sessionData != null && allDots.isNotEmpty;
 
@@ -29,13 +33,11 @@ class SleepController {
     if (sessionId == null && isLoaded) {
       return null;
     }
-
-
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
+      // final user = FirebaseAuth.instance.currentUser;
+      // if (user == null) return null;
 
-      final userEmail = user.email;
+      // final userEmail = user.email;
       final firestore = FirebaseFirestore.instance;
 
       DocumentSnapshot<Map<String,dynamic>>? targetSession;
@@ -44,7 +46,7 @@ class SleepController {
         getSesformId = true;
         final sessionsQuery = await firestore
           .collection('General user')
-          .doc(userEmail)
+          .doc(userDocId)
           .collection('sleepsession')
           .where('id', isEqualTo: sessionId)
           .limit(1)
@@ -61,7 +63,7 @@ class SleepController {
         getSesformId = false;
         final sessionsQuery = await firestore
           .collection('General user')
-          .doc(userEmail)
+          .doc(userDocId)
           .collection('sleepsession')
           .orderBy('id', descending: true)
           .limit(1)
@@ -110,15 +112,15 @@ class SleepController {
   // ========================================================================
   Future<List<int>> getAllSessionIds() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return [];
+      // final user = FirebaseAuth.instance.currentUser;
+      // if (user == null) return [];
 
-      final userEmail = user.email;
+      // final userEmail = user.email;
       final firestore = FirebaseFirestore.instance;
 
       final sessionsQuery = await firestore
           .collection('General user')
-          .doc(userEmail)
+          .doc(userDocId)
           .collection('sleepsession')
           .orderBy('id', descending: true)
           .get();
@@ -137,15 +139,15 @@ class SleepController {
   // ========================================================================
   Future<List<Map<String, dynamic>>> getSleepTimeandId() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return [];
+      // final user = FirebaseAuth.instance.currentUser;
+      // if (user == null) return [];
 
-      final userEmail = user.email;
+      // final userEmail = user.email;
       final firestore = FirebaseFirestore.instance;
 
       final sessionsQuery = await firestore
           .collection('General user')
-          .doc(userEmail)
+          .doc(userDocId)
           .collection('sleepsession')
           .orderBy('id', descending: true)
           .get();
@@ -462,11 +464,6 @@ class SleepController {
         print('No session loaded');
         return false;
       }
-
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return false;
-
-      final userEmail = user.email;
       final firestore = FirebaseFirestore.instance;
 
       final oldNote = sessionData!["note"].toString();
@@ -478,7 +475,7 @@ class SleepController {
 
       final sessionQuery = await firestore
           .collection('General user')
-          .doc(userEmail)
+          .doc(userDocId)
           .collection('sleepsession')
           .where('id', isEqualTo: _sessionId)
           .limit(1)
@@ -950,6 +947,7 @@ Widget buildGraphWidget({
   required BuildContext context,
   required List<DotDataPoint> dots,
   required Map<String, dynamic> sessionData,
+  required String docId,
 }) {
   if (dots.isEmpty) {
     return const Padding(
@@ -960,7 +958,7 @@ Widget buildGraphWidget({
 
   final mediaWidth = MediaQuery.of(context).size.width;
 
-  final controller = SleepController();
+  final controller = SleepController(userDocId: docId);
   final startTimeRaw = sessionData['startTime'];
   final endTimeRaw = sessionData['endTime'];
   final startDateTime = controller._parseDateTime(startTimeRaw);
@@ -994,6 +992,7 @@ Widget buildGraphWidget({
           _buildChartData(
             dots: dots,
             sessionData: sessionData,
+            docId: docId,
             isCurved: false,
           ),
         ),
@@ -1009,9 +1008,10 @@ Widget buildGraphWidget({
 LineChartData _buildChartData({
   required List<DotDataPoint> dots,
   required Map<String, dynamic> sessionData,
+  required String docId,
   bool isCurved = false,
 }) {
-  final controller = SleepController();
+  final controller = SleepController(userDocId: docId);
   final startTimeRaw = sessionData['startTime'];
   final endTimeRaw = sessionData['endTime'];
   final startDateTime = controller._parseDateTime(startTimeRaw);

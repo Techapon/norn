@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:nornsabai/Myfunction/generalfunc/mainfunc/graph/trendgraph.dart';
+import 'package:nornsabai/Myfunction/globalFunc/trendgraph.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 class SleepdataSelector extends StatefulWidget {

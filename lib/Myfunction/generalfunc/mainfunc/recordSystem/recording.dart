@@ -84,10 +84,6 @@ class Runtime {
   void stopTimer(void Function() onTick) {
     if (!isRunning) return;
 
-    // print("stop at : ${endsession}");
-
-    // Duration pass = endsession.difference(startsession);
-    // print("Passed : ${pass.inSeconds}");
 
     isRunning = false;
     timer.cancel();

@@ -38,7 +38,7 @@ class settingElement extends StatelessWidget {
         ),
         padding: EdgeInsets.zero
       ),
-      onPressed: (){},
+      onPressed: onclick,
       child: Padding(
         padding: const EdgeInsets.only(right: 30),
         child: Row(

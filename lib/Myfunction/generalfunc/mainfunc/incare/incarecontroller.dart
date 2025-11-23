@@ -1,26 +1,25 @@
-import 'package:nornsabai/model/data_model/requestmodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nornsabai/model/data_model/requestmodel.dart';
 
+// ==================== General User Friend System ====================
 class GeneralUserFriendSystem {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _caretakerCollection = 'Caretaker';
   final String _generalUserCollection = 'General user';
 
-  // Subcollections
   static const String _requestsSubcollection = 'requests';
   static const String _declinedRequestsSubcollection = 'delinceRequest';
   static const String _caretakerlistSubcollection = 'caretakerlist';
 
-  /// ฟังก์ชันตอบรับ friend request (Accept)
+  /// ยอมรับ friend request
   Future<Map<String, dynamic>> acceptRequest({
-    required String generalUserEmail,
+    required String generalUserId,
     required String docId,
-    required String caretakerEmail,
+    required String caretakerId,
     required Map<String, dynamic> requestData,
   }) async {
     try {
-      // อัปเดตสถานะและย้ายไป caretakerlist ของ General User
-      final acceptedData = {
+      Map<String, dynamic> acceptedData = {
         ...requestData,
         'status': 'accepted',
         'acceptedAt': FieldValue.serverTimestamp(),
@@ -28,57 +27,61 @@ class GeneralUserFriendSystem {
 
       await _firestore
           .collection(_generalUserCollection)
-          .doc(generalUserEmail)
+          .doc(generalUserId)
           .collection(_caretakerlistSubcollection)
           .doc(docId)
           .set(acceptedData);
 
-      // ลบจาก requests ของ General User
       await _firestore
           .collection(_generalUserCollection)
-          .doc(generalUserEmail)
+          .doc(generalUserId)
           .collection(_requestsSubcollection)
           .doc(docId)
           .delete();
 
-      // ย้ายไป incarelist ของ Caretaker
+      acceptedData = {
+        ...requestData,
+        "targetUserId" : generalUserId,
+        "fromCaretakerId" : null,
+        'status': 'accepted',
+        'acceptedAt': FieldValue.serverTimestamp(),
+      };
+
       await _firestore
           .collection(_caretakerCollection)
-          .doc(caretakerEmail)
+          .doc(caretakerId)
           .collection('incarelist')
           .doc(docId)
           .set(acceptedData);
 
-      // ลบจาก requests ของ Caretaker
       await _firestore
           .collection(_caretakerCollection)
-          .doc(caretakerEmail)
+          .doc(caretakerId)
           .collection(_requestsSubcollection)
           .doc(docId)
           .delete();
 
       return {
         'success': true,
-        'message': 'Appect success',
+        'message': 'ยอมรับคำขอสำเร็จ',
       };
     } catch (e) {
       print('Error accepting request: $e');
       return {
         'success': false,
-        'message': 'Error : $e',
+        'message': 'เกิดข้อผิดพลาด: $e',
       };
     }
   }
 
-  /// ฟังก์ชันปฏิเสธ friend request (Decline)
+  /// ปฏิเสธ friend request
   Future<Map<String, dynamic>> declineRequest({
-    required String generalUserEmail,
+    required String generalUserId,
     required String docId,
-    required String caretakerEmail,
+    required String caretakerId,
     required Map<String, dynamic> requestData,
   }) async {
     try {
-      // อัปเดตสถานะและย้ายไป delinceRequest ของ General User
       final declinedData = {
         ...requestData,
         'status': 'declined',
@@ -87,31 +90,28 @@ class GeneralUserFriendSystem {
 
       await _firestore
           .collection(_generalUserCollection)
-          .doc(generalUserEmail)
+          .doc(generalUserId)
           .collection(_declinedRequestsSubcollection)
           .doc(docId)
           .set(declinedData);
 
-      // ลบจาก requests ของ General User
       await _firestore
           .collection(_generalUserCollection)
-          .doc(generalUserEmail)
+          .doc(generalUserId)
           .collection(_requestsSubcollection)
           .doc(docId)
           .delete();
 
-      // ย้ายไป delinceRequest ของ Caretaker
       await _firestore
           .collection(_caretakerCollection)
-          .doc(caretakerEmail)
+          .doc(caretakerId)
           .collection('delinceRequest')
           .doc(docId)
           .set(declinedData);
 
-      // ลบจาก requests ของ Caretaker
       await _firestore
           .collection(_caretakerCollection)
-          .doc(caretakerEmail)
+          .doc(caretakerId)
           .collection(_requestsSubcollection)
           .doc(docId)
           .delete();
@@ -129,89 +129,153 @@ class GeneralUserFriendSystem {
     }
   }
 
-  /// 7. ฟังก์ชันดูรายการที่อยู่ใน requests
-  Stream<List<FriendRequestModel>> getRequestsList(String generalUserEmail) {
+  /// ดูรายการที่อยู่ใน requests พร้อมข้อมูล caretaker
+  Stream<List<FriendRequestWithUserData>> getRequestsListWithUserData(
+      String generalUserId) {
     return _firestore
         .collection(_generalUserCollection)
-        .doc(generalUserEmail)
+        .doc(generalUserId)
         .collection(_requestsSubcollection)
         .orderBy('requestId', descending: true)
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return FriendRequestModel.fromFirestore(doc.id, data);
-      }).toList();
+        .asyncMap((snapshot) async {
+      List<FriendRequestWithUserData> requestsWithData = [];
+
+      for (var doc in snapshot.docs) {
+        final request = FriendRequestModel.fromFirestore(doc.id, doc.data());
+
+        // ดึงข้อมูล caretaker
+        UserData? caretaker;
+        if (request.fromCaretakerId != null) {
+          caretaker = await _getCaretakerData(request.fromCaretakerId!);
+        }
+
+        requestsWithData.add(FriendRequestWithUserData(
+          request: request,
+          caretaker: caretaker,
+        ));
+      }
+
+      return requestsWithData;
     });
   }
 
-  /// 8. ฟังก์ชันดูรายการที่อยู่ใน delinceRequest
-  Stream<List<FriendRequestModel>> getDeclinedRequestsList(String generalUserEmail) {
+  /// ดูรายการที่อยู่ใน delinceRequest พร้อมข้อมูล caretaker
+  Stream<List<FriendRequestWithUserData>> getDeclinedRequestsListWithUserData(
+      String generalUserId) {
     return _firestore
         .collection(_generalUserCollection)
-        .doc(generalUserEmail)
+        .doc(generalUserId)
         .collection(_declinedRequestsSubcollection)
-        // .orderBy('requestId', descending: true)
-        .orderBy('declineId', descending: true)
+        .orderBy('requestId', descending: true)
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return FriendRequestModel.fromFirestore(doc.id, data);
-      }).toList();
+        .asyncMap((snapshot) async {
+      List<FriendRequestWithUserData> requestsWithData = [];
+
+      for (var doc in snapshot.docs) {
+        final request = FriendRequestModel.fromFirestore(doc.id, doc.data());
+
+        UserData? caretaker;
+        if (request.fromCaretakerId != null) {
+          caretaker = await _getCaretakerData(request.fromCaretakerId!);
+        }
+
+        requestsWithData.add(FriendRequestWithUserData(
+          request: request,
+          caretaker: caretaker,
+        ));
+      }
+
+      return requestsWithData;
     });
   }
 
-  /// 9. ฟังก์ชันดูรายการที่อยู่ใน caretakerlist
-  Stream<List<FriendRequestModel>> getCaretakerList(String generalUserEmail) {
+  /// ดูรายการที่อยู่ใน caretakerlist พร้อมข้อมูล caretaker
+  Stream<List<FriendRequestWithUserData>> getCaretakerListWithUserData(
+      String generalUserId) {
     return _firestore
         .collection(_generalUserCollection)
-        .doc(generalUserEmail)
+        .doc(generalUserId)
         .collection(_caretakerlistSubcollection)
-        // .orderBy('requestId', descending: true)
-        .orderBy('caretakerId', descending: true)
+        .orderBy('requestId', descending: true)
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return FriendRequestModel.fromFirestore(doc.id, data);
-      }).toList();
+        .asyncMap((snapshot) async {
+      List<FriendRequestWithUserData> requestsWithData = [];
+
+      for (var doc in snapshot.docs) {
+        final request = FriendRequestModel.fromFirestore(doc.id, doc.data());
+
+        UserData? caretaker;
+        if (request.fromCaretakerId != null) {
+          caretaker = await _getCaretakerData(request.fromCaretakerId!);
+        }
+
+        requestsWithData.add(FriendRequestWithUserData(
+          request: request,
+          caretaker: caretaker,
+        ));
+      }
+
+      return requestsWithData;
     });
   }
 
-  /// 10. ฟังก์ชันยกเลิกการเป็นเพื่อน
+  /// ยกเลิกการเป็นเพื่อน
   Future<Map<String, dynamic>> removeFriend({
-    required String generalUserEmail,
+    required String generalUserId,
     required String docId,
-    required String caretakerEmail,
+    required String caretakerId,
   }) async {
     try {
-      // ลบจาก General User's caretakerlist
       await _firestore
           .collection(_generalUserCollection)
-          .doc(generalUserEmail)
+          .doc(generalUserId)
           .collection(_caretakerlistSubcollection)
           .doc(docId)
           .delete();
 
-      // ลบจาก Caretaker's incarelist
       await _firestore
           .collection(_caretakerCollection)
-          .doc(caretakerEmail)
+          .doc(caretakerId)
           .collection('incarelist')
           .doc(docId)
           .delete();
 
       return {
         'success': true,
-        'message': 'Calcel freinds success',
+        'message': 'ยกเลิกการเป็นเพื่อนสำเร็จ',
       };
     } catch (e) {
       print('Error removing friend: $e');
       return {
         'success': false,
-        'message': 'Error: $e',
+        'message': 'เกิดข้อผิดพลาด: $e',
       };
     }
   }
+
+  // ============ Helper Functions ============
+
+  /// ดึงข้อมูล Caretaker
+  Future<UserData?> _getCaretakerData(String caretakerId) async {
+    try {
+      final doc = await _firestore
+          .collection(_caretakerCollection)
+          .doc(caretakerId)
+          .get();
+
+      if (!doc.exists) return null;
+
+      final data = doc.data()!;
+      return UserData(
+        userId: caretakerId,
+        username: data['username'] ?? data['name'] ?? '',
+        email: data['email'] ?? '',
+      );
+    } catch (e) {
+      print('Error getting caretaker data: $e');
+      return null;
+    }
+  }
 }
+

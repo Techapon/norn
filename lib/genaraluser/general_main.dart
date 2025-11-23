@@ -1,5 +1,7 @@
 import 'package:circle_nav_bar/circle_nav_bar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:nornsabai/Myfunction/My_findaccount.dart';
 import 'package:nornsabai/genaraluser/pange/profile_ganeral.dart';
 import 'package:nornsabai/genaraluser/pange/record_general.dart';
 import 'package:nornsabai/genaraluser/pange/result_ganeral.dart';
@@ -19,22 +21,61 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
 
   Color navbarcolor = BgColor.BottomNav_bg.color_code;
 
-  List<Widget>  _pages = [
-    RecordGeneral(),
-    ResultGaneral(),
-    TrendGaneral(),
-    Center(child: Text('search Page')),
-    ProfileGeneral()
-  ];
+  String? myDocId;
+
+  bool isLoading = true;
+
+  List<Widget>? pages;
+
+  @override
+  void initState() {
+    super.initState();
+    loadMyDocId();
+  }
+
+  Future<void> loadMyDocId() async {
+    String myEmail = FirebaseAuth.instance.currentUser!.email!;
+
+    String? docId = await getUserDocIdByEmail("General user",myEmail);
+
+    if (!mounted) return;
+    setState(() {
+      myDocId = docId;
+      isLoading = false;
+
+      pages = [
+        RecordGeneral(),
+        ResultGaneral(userDocId: myDocId!),   // ได้ค่า docID ที่ถูกต้อง
+        TrendGaneral(userDocId: myDocId!,),
+        Center(child: Text('search Page')),
+        ProfileGeneral(userDocId: myDocId!)
+      ];
+
+    });
+  }
+
+  List<Widget> getPages() {
+    return [
+      RecordGeneral(),
+      ResultGaneral(userDocId: myDocId!),   // ได้ค่า docID ที่ถูกต้อง
+      TrendGaneral(userDocId: myDocId!,),
+      Center(child: Text('search Page')),
+      ProfileGeneral(userDocId: myDocId!)
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: BgColor.Bg1.color_code,
-      body: IndexedStack(
+      body: isLoading
+      ? Center(
+        child: CircularProgressIndicator() 
+      )
+      : IndexedStack(
         index: _currentIndex,
-        children: _pages,
+        children: pages!,
       ),
 
       bottomNavigationBar: CircleNavBar(

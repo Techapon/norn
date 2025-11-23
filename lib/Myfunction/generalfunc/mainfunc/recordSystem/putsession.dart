@@ -29,11 +29,22 @@ Future<bool> addSleepSessionData({
     final firestore = FirebaseFirestore.instance;
     
     // Reference ไปยัง session document
-    final sessionDocRef = firestore
-        .collection('General user')
-        .doc(userEmail)
-        .collection('sleepsession')
-        .doc("session${sessionId}");
+    // final sessionDocRef = firestore
+    //   .collection('General user')
+    //   .where("email", isEqualTo: userEmail)
+    //   .collection('sleepsession')
+    //   .doc("session${sessionId}");
+
+    final userQuery = await FirebaseFirestore.instance
+      .collection('General user')
+      .where("email", isEqualTo: userEmail)
+      .get();
+
+    if (userQuery.docs.isEmpty) {
+      throw Exception("User not found");
+    }
+
+    final sessionDocRef = userQuery.docs.first.reference.collection('sleepsession').doc("session$sessionId");
 
     // 1. เพิ่มข้อมูล session document (ระดับ root)
     batch.set(sessionDocRef, {

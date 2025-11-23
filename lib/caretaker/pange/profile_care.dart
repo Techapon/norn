@@ -13,21 +13,17 @@ import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 
 class ProfileCare extends StatelessWidget {
-  const ProfileCare({super.key});
+  final String careDocId;
+
+  ProfileCare({required this.careDocId});
 
   // find user
   Future<Map<String,dynamic>?> getuserprofile() async{
     try {
-      
-      final User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
-
-      final String userEmail = user.email!;
-
       // find in caretaker
       final DocumentSnapshot Caretaker = await FirebaseFirestore.instance
             .collection("Caretaker")
-            .doc(userEmail).get();
+            .doc(careDocId).get();
 
       if (Caretaker.exists) {
         final userDoc = Caretaker.data() as Map<String, dynamic>;

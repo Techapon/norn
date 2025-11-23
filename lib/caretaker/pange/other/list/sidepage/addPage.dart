@@ -1,13 +1,17 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:nornsabai/Myfunction/caretakerfunc/mainfunc/takecaresystem/carecontroller.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
 import 'package:nornsabai/caretaker/pange/other/list/widget/usershowcase.dart';
 import 'package:nornsabai/model/data_model/searchitemmodel.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 class Addpage extends StatefulWidget {
-  const Addpage({super.key});
+  final CaretakerFriendSystem carecontroller;
+  final String careDocId;
+
+  const Addpage({super.key,required this.carecontroller,required this.careDocId});
 
   @override
   State<Addpage> createState() => _AddpageState();
@@ -34,6 +38,7 @@ class _AddpageState extends State<Addpage> {
         final users = snapshot.docs.map((doc) {
           final data = doc.data();
           return SearchItem(
+            docid: doc.id,
             username: data['username'] ?? '', 
             email: data['email'] ?? '', 
           );
@@ -141,7 +146,11 @@ class _AddpageState extends State<Addpage> {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                return Usershowcase(user: geneUser);
+                                return Usershowcase(
+                                  user: geneUser,
+                                  carecontroller:widget.carecontroller,
+                                  careDocId:  widget.careDocId,
+                                );
                               }
                             );
                           },

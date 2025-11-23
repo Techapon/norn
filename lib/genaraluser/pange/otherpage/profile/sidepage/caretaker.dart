@@ -1,53 +1,64 @@
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
-import 'package:nornsabai/Myfunction/caretakerfunc/mainfunc/takecaresystem/carecontroller.dart';
-import 'package:nornsabai/caretaker/pange/other/list/sidepage/addPage.dart';
-import 'package:nornsabai/model/data_model/requestmodel.dart';
+import 'package:nornsabai/Myfunction/generalfunc/mainfunc/incare/incarecontroller.dart';
+import 'package:nornsabai/model/data_model/requestmodel.dart' show FriendRequestWithUserData;
+import 'package:nornsabai/model/reuse_model/color_model.dart';
 
-class RequestCare extends StatefulWidget {
-  final String careDocId;
+class Caretaker extends StatefulWidget {
+  final String userdocid;
 
-  RequestCare({required this.careDocId});
+  Caretaker({super.key,required this.userdocid});
 
   @override
-  State<RequestCare> createState() => _RequestCareState();
+  State<Caretaker> createState() => _CaretakerState();
 }
 
-class _RequestCareState extends State<RequestCare> {
-  final CaretakerFriendSystem carecontroller = CaretakerFriendSystem(); 
+class _CaretakerState extends State<Caretaker> {
+
+  final GeneralUserFriendSystem incarecontroller = GeneralUserFriendSystem();
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15,vertical: 20),
+    return Scaffold(
+      backgroundColor: BgColor.Bg1.color_code,
+      body: SafeArea(
         child: Column(
           children: [
-           
+            Text("Caretaker",style: TextStyle(color: Colors.white,fontSize: 30),textAlign: TextAlign.center,),
+
             Expanded(
               child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 30),
                 child: StreamBuilder<List<FriendRequestWithUserData>>(
-                  stream: carecontroller.getRequestsListWithUserData(widget.careDocId),
+                  stream: incarecontroller.getCaretakerListWithUserData(widget.userdocid),
                   builder: (context, snapshot) {
 
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
+                    // เกิด error
                     if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     }
 
-                    final requestsWithData = snapshot.data ?? [];
+                    // ดึงข้อมูล
+                    final requestsWithData  = snapshot.data ?? [];
 
-                    if (requestsWithData.isEmpty) {
-                      return const Center(child: Text('No pending requests'));
+                    // ไม่มีข้อมูล
+                    if (requestsWithData .isEmpty) {
+                      return const Center(child: Text('No incoming requests'));
                     }
 
                     return ListView.builder(
-                      itemCount: requestsWithData.length,
+                      itemCount: requestsWithData .length,
                       itemBuilder: (context, index) {
-                        final request = requestsWithData[index];
+                        final item = requestsWithData[index];
+                        final request = item.request;
+                        final caretaker = item.caretaker;
+
+                        print("--------- ${request}");
 
                         return Container(
                           margin: EdgeInsets.symmetric(vertical: 10),
@@ -68,16 +79,16 @@ class _RequestCareState extends State<RequestCare> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      request.targetUser?.username ?? 'Unknown User',
+                                      caretaker?.username ?? 'Unknown User',
                                     ),
                                     Text(
-                                      request.targetUser?.email ?? 'No email',
+                                      caretaker?.email ?? 'No email',
                                     ),
 
                                     Divider(),
 
                                     Text(
-                                      'Requested: ${request.request.formattedCreate}',
+                                      'Accepted: ${request.formattedAccept}',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -85,7 +96,7 @@ class _RequestCareState extends State<RequestCare> {
                                     ),
 
                                     Text(
-                                      'its: ${request.request.requesttPass} ago',
+                                      'Accepted passed: ${request.acceptPass} ago',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -98,7 +109,7 @@ class _RequestCareState extends State<RequestCare> {
                               Row(
                                 children: [
 
-                                  // Cancel Request
+                                  // Cancel Care
                                   Expanded(
                                     child: TextButton(
                                       onPressed: () async{
@@ -111,17 +122,17 @@ class _RequestCareState extends State<RequestCare> {
                                           whenSuccess: "Cancel care success!!",
                                           whenFail: "Cancel care fail,Please try again",
                                           onpressed: () async{
-                                            final result = await carecontroller.cancelRequest(
-                                              caretakerId: widget.careDocId,
-                                              docId: request.request.docId,
-                                              targetUserId: request.request.targetUserId ?? ''
+                                            final result = await incarecontroller.removeFriend(
+                                              generalUserId: widget.userdocid,
+                                              docId: request.docId,
+                                              caretakerId: request.fromCaretakerId ?? ''
                                             );
 
                                             return result["success"];
                                           }
                                         );
                                       },
-                                      child: Text("cancel")
+                                      child: Text("cancel care")
                                     ),
                                   ),
 
@@ -136,8 +147,9 @@ class _RequestCareState extends State<RequestCare> {
                 ),
               ),
             )
+            
           ],
-        )
+        ),
       ),
     );
   }

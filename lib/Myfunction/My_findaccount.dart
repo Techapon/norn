@@ -5,26 +5,24 @@ Future<Map<String, dynamic>?> findAccountByEmail(String email) async {
    
     final General = await FirebaseFirestore.instance
         .collection('General user')
-        .doc(email)
+        .where("email", isEqualTo: email)
         .get();
 
-    if (General.exists) {
+    if (General.docs.isNotEmpty) {
       return {
         'type': 'General',
-        'id': General.id,
       };
     }
 
     
     final Caretaker = await FirebaseFirestore.instance
         .collection('Caretaker')
-        .doc(email)
+        .where("email", isEqualTo: email)
         .get();
 
-    if (Caretaker.exists) {
+    if (Caretaker.docs.isNotEmpty) {
       return {
         'type': 'Caretaker',
-        'id': Caretaker.id,
       };
     }
 
@@ -68,9 +66,25 @@ Future<bool> findNameExits(String username) async {
     return false;
 
   } catch (e) {
-    print('Error finding account by username: $e');
+    print('erre: $e');
     return false;
   }
 }
 
 
+Future<String?> getUserDocIdByEmail(String whoareu,String email) async {
+  final firestore = FirebaseFirestore.instance;
+
+  // ค้นหา document ที่ email ตรงกัน
+  final querySnapshot = await firestore
+      .collection(whoareu)
+      .where('email', isEqualTo: email)
+      .limit(1)
+      .get();
+
+  // ถ้าไม่เจอ document
+  if (querySnapshot.docs.isEmpty) return null;
+
+  // คืนค่า docID ตัวแรก
+  return querySnapshot.docs.first.id;
+}

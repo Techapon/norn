@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nornsabai/Myfunction/My_findaccount.dart';
 
 /// ฟังก์ชั่นสำหรับหา id สูงสุดจาก sleepsession subcollection
 /// โดยดึงจากผู้ใช้ปัจจุบัน (Firebase Auth)
@@ -13,17 +14,23 @@ Future<int> getMaxSleepSessionId() async {
     final user = FirebaseAuth.instance.currentUser;
     
     if (user == null) {
-      print('ไม่พบผู้ใช้ที่เข้าสู่ระบบ');
+      print('Find id form email fail');
       return 0;
     }
 
     final userEmail = user.email;
+    final String? userId = await getUserDocIdByEmail("General user", userEmail!);
+
     print('Email: $userEmail');
+
+    if(userId == null) {
+      print("Error finding account by username");
+    }
 
     // อ้างอิงไปยัง subcollection sleepsession
     final sleepSessionQuery = FirebaseFirestore.instance
         .collection('General user')
-        .doc(userEmail)
+        .doc(userId)
         .collection('sleepsession');
 
     // ดึงข้อมูลทั้งหมดจาก subcollection

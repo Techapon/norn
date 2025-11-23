@@ -5,30 +5,31 @@ import 'package:nornsabai/Myfunction/globalFunc/trendgraph.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/preriod.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/typepop.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/detail.dart';
+import 'package:nornsabai/model/data_model/requestmodel.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 import 'package:provider/provider.dart';
 
+class Trenduser extends StatefulWidget {
+  FriendRequestWithUserData generaldata;
 
-// ============================================================================
-// ALTERNATIVE: Simpler Widget (without Provider)
-// ============================================================================
-
-class TrendGaneral extends StatefulWidget {
-  final String userDocId;
-
-  TrendGaneral({required this.userDocId});
+  Trenduser({required this.generaldata});
    
   @override
-  _TrendGaneralState createState() => _TrendGaneralState();
+  _TrenduserState createState() => _TrenduserState();
 }
 
-class _TrendGaneralState extends State<TrendGaneral> {
+class _TrenduserState extends State<Trenduser> {
   late SleepTrendController _controller;
+  
+  late FriendRequestWithUserData generaldata;
+  late String generalId;
 
   @override
   void initState() {
     super.initState();
-    _controller =  SleepTrendController(userDocId: widget.userDocId);
+    generaldata = widget.generaldata;
+    generalId = generaldata.targetUser!.userId;
+    _controller =  SleepTrendController(userDocId: generalId);
     _controller.addListener(_onControllerUpdate);
     _loadData();
   }
@@ -56,7 +57,7 @@ class _TrendGaneralState extends State<TrendGaneral> {
   @override
   Widget build(BuildContext context) {
     // Same UI as above...
-    return SafeArea(child: SleepTrendPage(userDocId: widget.userDocId,)); // Reuse the widget structure
+    return SleepTrendPage(userDocId: generalId); // Reuse the widget structure
   }
 }
 
@@ -155,64 +156,69 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
             }
 
             // Main widget
-            return Padding(
-              padding: EdgeInsetsGeometry.only(
-                left: 20,
-                right: 20,
-                top: 5
-              ),
-              child: Column(
-                children: [
-                  // decoration
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            return Scaffold(
+              backgroundColor: BgColor.Bg1.color_code,
+              body: SafeArea(
+                child: Padding(
+                  padding: EdgeInsetsGeometry.only(
+                    left: 20,
+                    right: 20,
+                    top: 5
+                  ),
+                  child: Column(
                     children: [
-                       Padding(
-                        padding: EdgeInsetsGeometry.symmetric(vertical: 15),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Snore",
-                              style: GoogleFonts.itim(fontSize: 25,color: headColor[0]),
+                      // decoration
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                           Padding(
+                            padding: EdgeInsetsGeometry.symmetric(vertical: 15),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Snore",
+                                  style: GoogleFonts.itim(fontSize: 25,color: headColor[0]),
+                                ),
+                                SizedBox(width: 5,),
+                                Text(
+                                  "Score",
+                                  style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
+                                ),
+                                // SizedBox(width: 5,),
+                                Icon(Icons.bar_chart,color: Colors.black,size: 27.5,)
+                              ],
                             ),
-                            SizedBox(width: 5,),
-                            Text(
-                              "Score",
-                              style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
-                            ),
-                            // SizedBox(width: 5,),
-                            Icon(Icons.bar_chart,color: Colors.black,size: 27.5,)
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                      
+                      // Sleep datatype widget
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SleepdataSelector(controller: controller),
+                        ],
+                      ),  
+                
+                      // Chart
+                      Padding(
+                        padding: EdgeInsets.only(top: 20,bottom: 13),
+                        child: _buildChart(controller),
+                      ),
+                
+                      PreriodSelector(controller: controller,),
+                
+                      SizedBox(height: 15,),
+                      // Selected Bar Details
+                      _buildBarDetailsWrapper(controller),
+                        // _buildBarDetails(controller.selectedMetrics!),
                   
-                  // Sleep datatype widget
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SleepdataSelector(controller: controller),
+                      SizedBox(height: 20),
                     ],
-                  ),  
-
-                  // Chart
-                  Padding(
-                    padding: EdgeInsets.only(top: 20,bottom: 13),
-                    child: _buildChart(controller),
                   ),
-
-                  PreriodSelector(controller: controller,),
-
-                  SizedBox(height: 15,),
-                  // Selected Bar Details
-                  _buildBarDetailsWrapper(controller),
-                    // _buildBarDetails(controller.selectedMetrics!),
-              
-                  SizedBox(height: 20),
-                ],
+                ),
               ),
             );
 
