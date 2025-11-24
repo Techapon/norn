@@ -47,8 +47,6 @@ dependencies:
   firebase_core: ^4.2.0
   firebase_auth: ^6.1.1
 
-  # dialog
-
   # provider
   provider: ^6.1.5+1
   
@@ -60,17 +58,17 @@ dependencies:
 
   # other
 
-
   # calander
-  # flutter_heatmap_calendar: ^1.0.5
   flutter_heatmap_calendar: ^1.0.5
 
 
 # Logo App
-flutter_launcher_icons::
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "image/nornsabai_logo.png"
+  image_path: "image/nornsabai_icon.png"
+  adaptive_icon_foreground: "image/nornsabai_icon.png"
+  adaptive_icon_background: "#D9F8FF"
 
 dev_dependencies:
   flutter_test:
@@ -98,7 +96,6 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - image/nornsabai_logo.png
-    - image/account_profiles.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
