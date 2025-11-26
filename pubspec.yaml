@@ -64,6 +64,15 @@ dependencies:
   # audio
   audioplayers: ^6.5.1
 
+  # notification
+  firebase_messaging: ^16.0.4
+
+  # audio record
+  flutter_sound: ^9.29.13
+  path_provider: ^2.1.5
+
+  # permission
+  permission_handler: ^12.0.1
 
 # Logo App
 flutter_launcher_icons:

@@ -1,22 +1,25 @@
 
 class Shortvoicemodel {
-  final int id;
-  // DateTime start;
-  // DateTime end;
-  // Duration totalseconds;
+  int id;
+  String? filePath;
   double shortValue;
-  String? aiResult;
+  String? aianalyzereault;
+  double? aivoicevolume;
   bool ended;
+
+  DateTime shortstart;
+  DateTime shortend;
 
   Shortvoicemodel(
     {
     required this.id,
-    // required this.start,
-    // required this.end,
-    // required this.totalseconds,
+    required this.filePath,
     required this.shortValue,
-    this.aiResult,
-    required this.ended
+    this.aianalyzereault,
+    this.aivoicevolume,
+    required this.ended,
+    required this.shortstart,
+    required this.shortend,
     }
   );
 }

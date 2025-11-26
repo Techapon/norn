@@ -22,7 +22,7 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
   if (shortVoice.ended == false) {
     totalsession++;
 
-    switch (shortVoice.aiResult) {
+    switch (shortVoice.aianalyzereault) {
       case "Apnea" :
         apnea++;
         break;
@@ -43,7 +43,19 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     print("Stored!! short voice id : ${shortVoice.id} | type : ${shortVoice.shortValue}" );
 
   }else {
-    print("End at : ${shortVoice.id} \n ${shortVoice.shortValue} \n ${shortVoice.aiResult} \n ${shortVoice.ended}");
+    print("End at : ${shortVoice.id} \n ${shortVoice.shortValue} \n ${shortVoice.aianalyzereault} \n ${shortVoice.ended}");
+
+    // add apnea session path
+    int countapneasession = 0;
+    for (var apneasessionItem in sessionTemStore["apneasessionpath"]) {
+      countapneasession++;
+
+      sessionTemStore["apneasessionpath"]["apneasesion${countapneasession}"] = apneasessionItem;
+
+      print("Apnea session path$countapneasession : ${apneasessionItem.path}");
+    }
+
+    // -------------------------------------
 
     int maxId = await getMaxSleepSessionId();
 
@@ -116,6 +128,8 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     totalsession = 0;
     peakcount = 0;
 
+    listOfAllShort.clear();
+
     final success = await addSleepSessionData(
       sleepData: sessionTemStore,
       sessionId: sessionTemStore["id"],
@@ -141,6 +155,7 @@ Map<String,dynamic> createSession() {
     "lound": null,
     "verylound": null,
     "note": "",
+    "apneasessionpath": <Map<String, dynamic>>{},
     "sleepdetail": <String, dynamic>{
       "remainer": <List<double>>[] 
     }

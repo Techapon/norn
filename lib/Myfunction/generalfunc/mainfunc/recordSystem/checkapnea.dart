@@ -1,11 +1,27 @@
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
 import 'package:nornsabai/model/data_model/shortVoiceModel.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:path_provider/path_provider.dart';
 
+//  shoervoice part
 List<Shortvoicemodel> ListofshortVoice =[];
-int threshold = 2;
+int threshold = 5;
 int consecutiveApneaSeconds = 0;
 int lastProcessedId = 0;
 bool alerted = false;
+
+int timecounter = 0;
+int timecounterlimit = 600;
+
+// file path part
+List<Map<String,dynamic>> ListApneabirth =[];
+List<Map<String,dynamic>> ListApneasesion =[];
+
+int apnealistId = 0;
+
+bool apneacritical = false;
 
 void checkApneaContinuity(Shortvoicemodel shortvoice) {
   ListofshortVoice.add(shortvoice);
@@ -20,17 +36,40 @@ void checkApneaContinuity(Shortvoicemodel shortvoice) {
     }else if (shortVoiceItem.id -1 != lastProcessedId) {
       continue;
     }else {
-      // check type fo Rresult
-      if (shortVoiceItem.aiResult == "Apnea") {
+      
+
+
+      // check type of Rresult
+      if (shortVoiceItem.aianalyzereault == "Apnea") {
         consecutiveApneaSeconds++;
-        // print("หายใจติดต่อตอนนี้เป็น ${consecutiveApneaSeconds} ");
+
+        print("หายใจติดต่อตอนนี้เป็น ${consecutiveApneaSeconds} ");
+
+        ListApneabirth.add({
+          "id": shortVoiceItem.id,
+          "path": shortVoiceItem.filePath,
+          "start": shortVoiceItem.shortstart,
+          "end": shortVoiceItem.shortend,
+        });
 
         if (consecutiveApneaSeconds >= threshold) {
-          // print("!! Stop breathing for ${consecutiveApneaSeconds} seconds !!");
+
+          print("!! Stop breathing for ${consecutiveApneaSeconds} seconds !!");
+          apneacritical = true;
+
           alerted = true;
         }
       }else {
         consecutiveApneaSeconds = 0;
+
+        deleteAudioFile(shortVoiceItem.filePath!);
+
+        if (apneacritical) {
+          storeApneaSession(ListApneabirth);
+        }
+        ListApneabirth.clear();
+        apneacritical = false;
+        
         alerted = false;
       }
 
@@ -41,4 +80,81 @@ void checkApneaContinuity(Shortvoicemodel shortvoice) {
     }
   }
   ListofshortVoice.removeWhere((value) => processedIds.contains(value.id));
+}
+
+
+storeApneaSession(List<Map<String,dynamic>> ListApneabirth) async {
+  apnealistId++;
+
+  List<String> paths = [];
+
+  for (var apneaItem in ListApneabirth) {
+    paths.add(apneaItem["path"]);
+  }
+
+  Directory dir = await getApplicationDocumentsDirectory();
+  String outputPath = "${dir.path}/apnea_${apnealistId}_${DateTime.now().millisecondsSinceEpoch}.wav";
+
+  bool maergeApneapath =  await mergeWavFiles(paths, outputPath);
+
+  if (maergeApneapath) {
+    ListApneasesion.add({
+      "id": apnealistId,
+      "path": outputPath,
+      "start": ListApneabirth.first["start"],
+      "end": ListApneabirth.last["end"],
+    });
+  }else {
+    print("merge error");
+  }
+}
+
+Future<bool> mergeWavFiles(List<String> paths, String outputPath) async {
+  List<int> mergedBytes = [];
+
+  for (var i = 0; i < paths.length; i++) {
+    var file = File(paths[i]);
+    var bytes = await file.readAsBytes();
+
+    if (i == 0) {
+      // เก็บ header ของไฟล์แรก
+      mergedBytes.addAll(bytes);
+    } else {
+      // skip header ของไฟล์อื่น (44 bytes)
+      mergedBytes.addAll(bytes.sublist(44));
+    }
+  }
+
+  // ปรับ header ของไฟล์แรก (ChunkSize, Subchunk2Size) ที่ index 4 และ 40
+  int dataSize = mergedBytes.length - 44;
+  mergedBytes[4] = (dataSize + 36) & 0xFF;
+  mergedBytes[5] = ((dataSize + 36) >> 8) & 0xFF;
+  mergedBytes[6] = ((dataSize + 36) >> 16) & 0xFF;
+  mergedBytes[7] = ((dataSize + 36) >> 24) & 0xFF;
+
+  mergedBytes[40] = dataSize & 0xFF;
+  mergedBytes[41] = (dataSize >> 8) & 0xFF;
+  mergedBytes[42] = (dataSize >> 16) & 0xFF;
+  mergedBytes[43] = (dataSize >> 24) & 0xFF;
+
+  try {
+    await File(outputPath).writeAsBytes(mergedBytes);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+Future<void> deleteAudioFile(String path) async {
+  try {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+      print("delete success: $path");
+    } else {
+      print("file not found : $path");
+    }
+  } catch (e) {
+    print("has error in file delete progress : $e");
+  }
 }

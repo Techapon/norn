@@ -1,33 +1,82 @@
+import 'dart:async';
 import 'dart:math';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:path_provider/path_provider.dart';
 
-/// -------------------------------------------------------------
-/// Function จำลองการบันทึกลมหายใจผู้ป่วย OSA
-/// -------------------------------------------------------------
+final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+final List<Uint8List> buffer = [];
+StreamController<Uint8List> _pcmController = StreamController();
+
 Future<void> recordVoiceMachince(
   bool Function() timeRunning,
-  void Function(double voiceValue, DateTime voiceStart, DateTime voiceEnd, bool ended) onData
+  void Function(String filePath,double voicevalue , DateTime voiceStart, DateTime voiceEnd, bool ended) onData
 ) async {
-  var random = Random();
-  DateTime sessionStart = DateTime.now();
 
-  // สร้าง simulator
+  // Create Random 
+  var random = Random();
   OsaBreathSimulator sim = OsaBreathSimulator(random);
 
-  // loop จนกว่า timeRunning() return false
+  Directory dir = await getApplicationDocumentsDirectory();
+  await _recorder.openRecorder();
+
+  // -------------------------------
+
+  // ⚡ รับ PCM data จาก recorder
+  _pcmController.stream.listen((Uint8List chunk) {
+    buffer.add(chunk);
+  });
+
+  // ⚡ เริ่มอัดเสียงแบบ PCM stream
+  await _recorder.startRecorder(
+    codec: Codec.pcm16,               
+    toStream: _pcmController.sink,   
+    numChannels: 1,
+    sampleRate: 16000,
+  );
+
+  DateTime sessionStart = DateTime.now();
+
   while (timeRunning()) {
     DateTime shortStart = DateTime.now();
-    await Future.delayed(Duration(microseconds: 500)); // 
 
-    double value = sim.nextValue(); // รับค่าลมหายใจสมจริง 0–100
-    DateTime shortEnd = DateTime.now();
+    // รอ 1 วิ
+    await Future.delayed(Duration(seconds: 1));
 
-    onData(value, shortStart, shortEnd, false);
+    if (buffer.isNotEmpty) {
+      Uint8List merged = Uint8List.fromList(
+        buffer.expand((e) => e).toList(),
+      );
+
+      buffer.clear();
+
+      // สร้างไฟล์ PCM 1 วินาที
+      String path =
+          "${dir.path}/part_${DateTime.now().millisecondsSinceEpoch}.pcm";
+
+      File file = File(path);
+      await file.writeAsBytes(merged);
+
+      DateTime shortEnd = DateTime.now();
+      double ramdomvalue = sim.nextValue();
+      onData(path,ramdomvalue,shortStart, shortEnd, false);
+    }
   }
 
-  // จบ session
+  await _recorder.stopRecorder();
+  await _recorder.closeRecorder();
+  await _pcmController.close();
+
   DateTime sessionEnd = DateTime.now();
-  onData(-1, sessionStart, sessionEnd, true);
+  onData("",-1,sessionStart, sessionEnd, true);
 }
+
+
+
+
+
+
 
 /// -------------------------------------------------------------
 /// Class จำลองลมหายใจผู้ป่วย OSA

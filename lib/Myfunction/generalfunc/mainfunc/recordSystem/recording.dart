@@ -42,7 +42,7 @@ class Runtime {
       ontick();
     });
 
-    recordVoiceMachince(() => isRunning, (voiceValue,startAt,endAT,ended) {
+    recordVoiceMachince(() => isRunning, (filepath,voiceValue,startAt,endAT,ended) {
       
       if (!ended) {
         
@@ -51,8 +51,11 @@ class Runtime {
         // // craeate class for short voice
         Shortvoicemodel shortvoice = Shortvoicemodel(
           id: id,
+          filePath: filepath,
           shortValue: voiceValue,
-          ended: ended 
+          ended: ended,
+          shortstart: startAt,
+          shortend: endAT
         );
 
         // print("Input voice ${id}");
@@ -68,8 +71,11 @@ class Runtime {
         // // craeate class for to br signend voice
         Shortvoicemodel shortvoice = Shortvoicemodel(
           id: id,
+          filePath: filepath,
           shortValue: voiceValue,
-          ended: ended 
+          ended: ended,
+          shortstart: startAt,
+          shortend: endAT
         );
 
         print("Endddd voice ${id}");
@@ -87,8 +93,6 @@ class Runtime {
     totoalseconds = 0;
     id = 0;
 
-    lastProcessedId = 0;
-    consecutiveApneaSeconds = 0;
     alerted = false;
 
     isRunning = false;

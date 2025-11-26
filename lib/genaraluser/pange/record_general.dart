@@ -1,11 +1,10 @@
-
-// import 'dart:async';
-
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/recording.dart';
+
+import 'package:permission_handler/permission_handler.dart';
 
 class RecordGeneral extends StatefulWidget {
   const RecordGeneral({super.key});
@@ -60,7 +59,12 @@ class _RecordGeneralState extends State<RecordGeneral> {
 
             // Start
             ElevatedButton(
-              onPressed: (){
+              onPressed: () async{
+                bool granted = await requestMicrophonePermission();
+                if (!granted) {
+                  print("ไม่สามารถอัดเสียงได้เพราะไม่มี permission");
+                  return;
+                }
                 start();
               },
               child: Text("start")
@@ -100,42 +104,55 @@ class _RecordGeneralState extends State<RecordGeneral> {
     );
 }
 
-// 🎯 เล่นเสียงปลุก (ใช้ไฟล์ an.wav)
-Future<void> playAlarm() async {
-  try {
-    setState(() {
-      isAlarmPlaying = true;
-    });
-    
-    // ใช้ไฟล์เสียง an.wav
-    await _audioPlayer.play(AssetSource('soundassets/alarm_01.wav'), 
-      volume: 1.0,
-    );
-    
-    // วนเล่นซ้ำ
-    _audioPlayer.setReleaseMode(ReleaseMode.loop);
-    
-  } catch (e) {
-    print('Error playing alarm: $e');
-    // แสดง error ให้ผู้ใช้ทราบ
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('ไม่พบไฟล์เสียง alarm_01.wav'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+  // 🎯 เล่นเสียงปลุก (ใช้ไฟล์ an.wav)
+  Future<void> playAlarm() async {
+    try {
+      setState(() {
+        isAlarmPlaying = true;
+      });
+      
+      // ใช้ไฟล์เสียง an.wav
+      await _audioPlayer.play(AssetSource('soundassets/alarm_01.wav'), 
+        volume: 1.0,
+      );
+      
+      // วนเล่นซ้ำ
+      _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      
+    } catch (e) {
+      print('Error playing alarm: $e');
+      // แสดง error ให้ผู้ใช้ทราบ
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ไม่พบไฟล์เสียง alarm_01.wav'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
-}
 
-// 🎯 หยุดเสียงปลุก
-Future<void> stopAlarm() async {
-  if (isAlarmPlaying) {
-    await _audioPlayer.stop();
-    setState(() {
-      isAlarmPlaying = false;
-    });
+  // 🎯 หยุดเสียงปลุก
+  Future<void> stopAlarm() async {
+    if (isAlarmPlaying) {
+      await _audioPlayer.stop();
+      setState(() {
+        isAlarmPlaying = false;
+      });
+    }
   }
-}
 
+  // permission function
+  Future<bool> requestMicrophonePermission() async {
+    // ตรวจสอบสถานะ permission
+    var status = await Permission.microphone.status;
+    
+    if (status.isGranted) {
+      return true;
+    } else {
+      // ขออนุญาต
+      status = await Permission.microphone.request();
+      return status.isGranted;
+    }
+  }
 
 }

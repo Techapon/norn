@@ -1,5 +1,10 @@
+import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/checkapnea.dart';
+import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
+import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/limulator/machine.dart';
 
 /// ฟังก์ชั่นเพิ่มข้อมูล sleep session ลงฐานข้อมูล
 /// โดยใช้ Batch เพื่อประสิทธิภาพสูง
@@ -28,13 +33,6 @@ Future<bool> addSleepSessionData({
 
     final firestore = FirebaseFirestore.instance;
     
-    // Reference ไปยัง session document
-    // final sessionDocRef = firestore
-    //   .collection('General user')
-    //   .where("email", isEqualTo: userEmail)
-    //   .collection('sleepsession')
-    //   .doc("session${sessionId}");
-
     final userQuery = await FirebaseFirestore.instance
       .collection('General user')
       .where("email", isEqualTo: userEmail)
@@ -60,6 +58,7 @@ Future<bool> addSleepSessionData({
 
     // 2. เก็บข้อมูล sleepdetail (subcollection)
     final sleepDetail = sleepData['sleepdetail'] as Map<String, dynamic>? ?? {};
+    final apneasessionpath = sleepData['apneasessionpath'] as Map<String, dynamic>? ?? {};
 
     // วนลูปผ่าน hour (hour1, hour2, ...)
     sleepDetail.forEach((hourKey, hourValue) {
@@ -94,6 +93,22 @@ Future<bool> addSleepSessionData({
       }
     });
 
+    apneasessionpath.forEach((apneasessionKey, apneasessionValue) {
+      if (apneasessionValue is Map<String, dynamic>) {
+        final apneasessionDocRef = sessionDocRef
+            .collection('apneasessionpath')
+            .doc(apneasessionKey); // apneasession1, apneasession2, ...
+
+        // 6. เพิ่ม apneasession document
+        batch.set(apneasessionDocRef, {
+          'id': apneasessionValue['id'] ?? 0,
+          'path': apneasessionValue['path'] ?? [],
+          'startat' : apneasessionValue['startat'] ?? 0,
+          'endat' : apneasessionValue['endat'] ?? 0,
+        });
+      }
+    });
+
     // ✅ FIXED: Remainer structure - remainer เป็น List<double> โดยตรง
     final remainer = sleepDetail['remainer'] as List<dynamic>? ?? [];
     if (remainer.isNotEmpty) {
@@ -114,6 +129,21 @@ Future<bool> addSleepSessionData({
     // Commit batch (execute ทั้งหมดในครั้งเดียว)
     await batch.commit();
 
+    // reset all of valible
+    // machine
+    buffer.clear();
+
+    // checkapnea
+    lastProcessedId = 0;
+    consecutiveApneaSeconds = 0;
+    ListofshortVoice.clear();
+    ListApneabirth.call();
+    ListApneasesion.clear();
+    apnealistId = 0;
+
+    // store
+    sessionTemStore = {};
+    
     print('✓ ข้อมูล sleep session เพิ่มสำเร็จ');
     return true;
   } catch (e) {
