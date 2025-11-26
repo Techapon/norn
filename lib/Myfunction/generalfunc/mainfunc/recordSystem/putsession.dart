@@ -1,10 +1,9 @@
-import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/checkapnea.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/limulator/machine.dart';
+import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/recording.dart';
 
 /// ฟังก์ชั่นเพิ่มข้อมูล sleep session ลงฐานข้อมูล
 /// โดยใช้ Batch เพื่อประสิทธิภาพสูง
@@ -93,21 +92,23 @@ Future<bool> addSleepSessionData({
       }
     });
 
-    apneasessionpath.forEach((apneasessionKey, apneasessionValue) {
-      if (apneasessionValue is Map<String, dynamic>) {
-        final apneasessionDocRef = sessionDocRef
-            .collection('apneasessionpath')
-            .doc(apneasessionKey); // apneasession1, apneasession2, ...
+    if (apneasessionpath.isNotEmpty) {
+      apneasessionpath.forEach((apneasessionKey, apneasessionValue) {
+        if (apneasessionValue is Map<String, dynamic>) {
+          final apneasessionDocRef = sessionDocRef
+              .collection('apneasessionpath')
+              .doc(apneasessionKey); // apneasession1, apneasession2, ...
 
-        // 6. เพิ่ม apneasession document
-        batch.set(apneasessionDocRef, {
-          'id': apneasessionValue['id'] ?? 0,
-          'path': apneasessionValue['path'] ?? [],
-          'startat' : apneasessionValue['startat'] ?? 0,
-          'endat' : apneasessionValue['endat'] ?? 0,
-        });
-      }
-    });
+          // 6. เพิ่ม apneasession document
+          batch.set(apneasessionDocRef, {
+            'id': apneasessionValue['id'] ?? 0,
+            'path': apneasessionValue['path'] ?? [],
+            'startat' : apneasessionValue['startat'] ?? 0,
+            'endat' : apneasessionValue['endat'] ?? 0,
+          });
+        }
+      });
+    }
 
     // ✅ FIXED: Remainer structure - remainer เป็น List<double> โดยตรง
     final remainer = sleepDetail['remainer'] as List<dynamic>? ?? [];
@@ -130,15 +131,17 @@ Future<bool> addSleepSessionData({
     await batch.commit();
 
     // reset all of valible
-    // machine
-    buffer.clear();
+    // record
 
     // checkapnea
     lastProcessedId = 0;
+
     consecutiveApneaSeconds = 0;
-    ListofshortVoice.clear();
-    ListApneabirth.call();
-    ListApneasesion.clear();
+    alerted = false;
+
+    ListofshortVoice = [];
+    ListApneabirth = [];
+    ListApneasesion = [];
     apnealistId = 0;
 
     // store

@@ -17,6 +17,22 @@ class _RecordGeneralState extends State<RecordGeneral> {
 
   Runtime runtime = Runtime();
 
+  @override
+  void initState() {
+    super.initState();
+    onSaveSuccess = () {
+      if (mounted) {
+        setState(() {});
+      }
+    };
+  }
+
+  @override
+  void dispose() {
+    onSaveSuccess = null;
+    super.dispose();
+  }
+
   void start() {
     runtime.startTimer(() => setState(() {}));
   }

@@ -71,7 +71,7 @@ dependencies:
   flutter_sound: ^9.29.13
   path_provider: ^2.1.5
 
-  # permission
+  # permission mic
   permission_handler: ^12.0.1
 
 # Logo App

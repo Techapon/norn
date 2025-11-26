@@ -12,8 +12,6 @@ int consecutiveApneaSeconds = 0;
 int lastProcessedId = 0;
 bool alerted = false;
 
-int timecounter = 0;
-int timecounterlimit = 600;
 
 // file path part
 List<Map<String,dynamic>> ListApneabirth =[];
@@ -24,6 +22,8 @@ int apnealistId = 0;
 bool apneacritical = false;
 
 void checkApneaContinuity(Shortvoicemodel shortvoice) {
+
+  print("in appnea progressing ${shortvoice.shortValue}");
   ListofshortVoice.add(shortvoice);
   ListofshortVoice.sort((a,b) => a.id.compareTo(b.id));
 
@@ -36,9 +36,7 @@ void checkApneaContinuity(Shortvoicemodel shortvoice) {
     }else if (shortVoiceItem.id -1 != lastProcessedId) {
       continue;
     }else {
-      
-
-
+      print("init 2");
       // check type of Rresult
       if (shortVoiceItem.aianalyzereault == "Apnea") {
         consecutiveApneaSeconds++;
@@ -76,6 +74,7 @@ void checkApneaContinuity(Shortvoicemodel shortvoice) {
       lastProcessedId = shortVoiceItem.id;
 
       processedIds.add(shortVoiceItem.id);
+      print("Checked!! short voice id : ${shortVoiceItem.id} | value : ${shortVoiceItem.shortValue}");
       storeAnalyzedVoice(shortVoiceItem);
     }
   }
@@ -98,12 +97,17 @@ storeApneaSession(List<Map<String,dynamic>> ListApneabirth) async {
   bool maergeApneapath =  await mergeWavFiles(paths, outputPath);
 
   if (maergeApneapath) {
-    ListApneasesion.add({
+    var apneasession = {
       "id": apnealistId,
       "path": outputPath,
       "start": ListApneabirth.first["start"],
       "end": ListApneabirth.last["end"],
-    });
+    };
+    ListApneasesion.add(apneasession);
+
+    if (sessionTemStore["apneasessionpath"] is Map) {
+      sessionTemStore["apneasessionpath"]["apneasesion$apnealistId"] = apneasession;
+    }
   }else {
     print("merge error");
   }
@@ -150,7 +154,7 @@ Future<void> deleteAudioFile(String path) async {
     final file = File(path);
     if (await file.exists()) {
       await file.delete();
-      print("delete success: $path");
+      print("delete success:");
     } else {
       print("file not found : $path");
     }

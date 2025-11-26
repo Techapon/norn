@@ -6,8 +6,7 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 
 final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
-final List<Uint8List> buffer = [];
-StreamController<Uint8List> _pcmController = StreamController();
+
 
 Future<void> recordVoiceMachince(
   bool Function() timeRunning,
@@ -21,6 +20,10 @@ Future<void> recordVoiceMachince(
   Directory dir = await getApplicationDocumentsDirectory();
   await _recorder.openRecorder();
 
+  final List<Uint8List> buffer = [];
+  StreamController<Uint8List> _pcmController = StreamController();
+
+
   // -------------------------------
 
   // ⚡ รับ PCM data จาก recorder
@@ -28,7 +31,7 @@ Future<void> recordVoiceMachince(
     buffer.add(chunk);
   });
 
-  // ⚡ เริ่มอัดเสียงแบบ PCM stream
+  // // ⚡ เริ่มอัดเสียงแบบ PCM stream
   await _recorder.startRecorder(
     codec: Codec.pcm16,               
     toStream: _pcmController.sink,   
@@ -39,6 +42,7 @@ Future<void> recordVoiceMachince(
   DateTime sessionStart = DateTime.now();
 
   while (timeRunning()) {
+    print("Running : $timeRunning");
     DateTime shortStart = DateTime.now();
 
     // รอ 1 วิ
@@ -71,10 +75,6 @@ Future<void> recordVoiceMachince(
   DateTime sessionEnd = DateTime.now();
   onData("",-1,sessionStart, sessionEnd, true);
 }
-
-
-
-
 
 
 

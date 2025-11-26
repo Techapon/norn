@@ -46,14 +46,16 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     print("End at : ${shortVoice.id} \n ${shortVoice.shortValue} \n ${shortVoice.aianalyzereault} \n ${shortVoice.ended}");
 
     // add apnea session path
-    int countapneasession = 0;
-    for (var apneasessionItem in sessionTemStore["apneasessionpath"]) {
-      countapneasession++;
+    // if (sessionTemStore["apneasessionpath"] != null) {
+    //   int countapneasession = 0;
+    //   for (var apneasessionItem in sessionTemStore["apneasessionpath"]) {
+    //     countapneasession++;
 
-      sessionTemStore["apneasessionpath"]["apneasesion${countapneasession}"] = apneasessionItem;
+    //     sessionTemStore["apneasessionpath"]["apneasesion${countapneasession}"] = apneasessionItem;
 
-      print("Apnea session path$countapneasession : ${apneasessionItem.path}");
-    }
+    //     print("Apnea session path$countapneasession : ${apneasessionItem.filePath}");
+    //   }
+    // }
 
     // -------------------------------------
 
@@ -120,6 +122,11 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     print("All dots : ${peakcount}");
     print("----------------------------------");
 
+    final success = await addSleepSessionData(
+      sleepData: sessionTemStore,
+      sessionId: sessionTemStore["id"],
+    );
+
     // reset valible
     apnea = 0;
     quiet = 0;
@@ -129,11 +136,6 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     peakcount = 0;
 
     listOfAllShort.clear();
-
-    final success = await addSleepSessionData(
-      sleepData: sessionTemStore,
-      sessionId: sessionTemStore["id"],
-    );
     
     if (success) {
       print('✓ Session data saved successfully');
@@ -155,7 +157,7 @@ Map<String,dynamic> createSession() {
     "lound": null,
     "verylound": null,
     "note": "",
-    "apneasessionpath": <Map<String, dynamic>>{},
+    "apneasessionpath": <String, dynamic> {},
     "sleepdetail": <String, dynamic>{
       "remainer": <List<double>>[] 
     }
@@ -166,7 +168,7 @@ Map<String,dynamic> createSession() {
 // Format remainer function - 30-minute intervals
 void formatRemainder() {
   int remainerID = 0;
-  List<double> allRemainerDots = []; // ✅ FIXED: รวมทุก dots จาก remainer เข้าไว้ที่เดียว
+  List<double> allRemainerDots = []; 
 
   // Process remainer in 30-minute chunks (1800 seconds)
   while (listOfAllShort.length >= 1800) {

@@ -7,13 +7,15 @@ import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/checkapne
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
 import 'package:nornsabai/model/data_model/shortVoiceModel.dart';
 
+int totoalseconds = 0;
+int id = 0;
+Function? onSaveSuccess;
+
 class Runtime {
-  int totoalseconds = 0;
   late Timer timer; 
   bool isRunning = false;
 
   // id
-  int id = 0;
 
   late DateTime now;
 
@@ -58,8 +60,7 @@ class Runtime {
           shortend: endAT
         );
 
-        // print("Input voice ${id}");
-
+        print("Input voice ${id}");
         AiAnalyzeSound(shortvoice);
         
       }else {
@@ -70,7 +71,7 @@ class Runtime {
         
         // // craeate class for to br signend voice
         Shortvoicemodel shortvoice = Shortvoicemodel(
-          id: id,
+          id: id, // Use current id, don't increment
           filePath: filepath,
           shortValue: voiceValue,
           ended: ended,
@@ -82,22 +83,21 @@ class Runtime {
 
         AiAnalyzeSound(shortvoice);
 
+        totoalseconds = 0;
+        id = 0;
+        
+        timer.cancel();
+        ontick();
+
       }
     });
   }
 
   // Stop function
-  void stopTimer(void Function() onTick) {
+  void stopTimer(void Function() ontick) {
     if (!isRunning) return;
-
-    totoalseconds = 0;
-    id = 0;
-
-    alerted = false;
-
     isRunning = false;
-    timer.cancel();
-    onTick();
+
   }
 
 

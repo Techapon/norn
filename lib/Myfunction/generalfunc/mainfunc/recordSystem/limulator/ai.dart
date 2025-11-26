@@ -29,9 +29,11 @@ Future<void> AiAnalyzeSound(Shortvoicemodel shortvoice) async{
       shortvoice.aivoicevolume = shortvoice.shortValue;
 
     }
+    print("Ai reault ${shortvoice.aianalyzereault}");
 
     checkApneaContinuity(shortvoice);
   }else {
+    print("SKIP TEH END");
     checkApneaContinuity(shortvoice);
   }
 }
