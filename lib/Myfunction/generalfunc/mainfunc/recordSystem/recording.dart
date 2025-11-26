@@ -84,20 +84,6 @@ class Runtime {
   void stopTimer(void Function() onTick) {
     if (!isRunning) return;
 
-
-    isRunning = false;
-    timer.cancel();
-    onTick();
-  }
-
-
-  // Reset function
-  void resetTimer(void Function() onTick) {
-    if (isRunning) {
-      timer.cancel();
-      isRunning = false;
-    }
-
     totoalseconds = 0;
     id = 0;
 
@@ -105,9 +91,11 @@ class Runtime {
     consecutiveApneaSeconds = 0;
     alerted = false;
 
+    isRunning = false;
+    timer.cancel();
     onTick();
-    
   }
+
 
   // Get time
   String getTimeFormatted() {

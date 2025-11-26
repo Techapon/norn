@@ -3,6 +3,7 @@
 
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/recording.dart';
 
@@ -25,14 +26,13 @@ class _RecordGeneralState extends State<RecordGeneral> {
     runtime.stopTimer(() => setState(() {}));
   }
 
-  void reset() {
-    runtime.resetTimer(() => setState(() {}));
-  }
-
   // TimeOfDay selectefTime = TimeOfDay.now();
 
   late Timer timer;
   DateTime now = DateTime.now();
+
+  bool isAlarmPlaying = false;
+  final _audioPlayer = AudioPlayer();
   
   @override
   Widget build(BuildContext context) {
@@ -77,17 +77,65 @@ class _RecordGeneralState extends State<RecordGeneral> {
             ),
 
             SizedBox(width: 20),
-            
-            // Reset
-            ElevatedButton(
-              onPressed: (){
-                reset();
-              },
-              child: Text("reset")
-            )
+        
           ],
+        ),
+
+        Text("alram test"),
+
+        FilledButton(
+          onPressed: () {
+            if (isAlarmPlaying) return;
+            playAlarm();
+          },
+          child: Text("play Alram")
+        ),
+        FilledButton(
+          onPressed: () {
+            stopAlarm();
+          },
+          child: Text("stop Alram")
         )
       ],
     );
+}
+
+// 🎯 เล่นเสียงปลุก (ใช้ไฟล์ an.wav)
+Future<void> playAlarm() async {
+  try {
+    setState(() {
+      isAlarmPlaying = true;
+    });
+    
+    // ใช้ไฟล์เสียง an.wav
+    await _audioPlayer.play(AssetSource('soundassets/alarm_01.wav'), 
+      volume: 1.0,
+    );
+    
+    // วนเล่นซ้ำ
+    _audioPlayer.setReleaseMode(ReleaseMode.loop);
+    
+  } catch (e) {
+    print('Error playing alarm: $e');
+    // แสดง error ให้ผู้ใช้ทราบ
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('ไม่พบไฟล์เสียง alarm_01.wav'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
+}
+
+// 🎯 หยุดเสียงปลุก
+Future<void> stopAlarm() async {
+  if (isAlarmPlaying) {
+    await _audioPlayer.stop();
+    setState(() {
+      isAlarmPlaying = false;
+    });
+  }
+}
+
+
 }
