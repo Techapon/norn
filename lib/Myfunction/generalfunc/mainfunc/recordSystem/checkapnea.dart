@@ -1,4 +1,6 @@
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
+import 'package:nornsabai/Myfunction/globalFunc/alarmsystem/screen/alarm_ge.dart';
+import 'package:nornsabai/genaraluser/general_main.dart';
 import 'package:nornsabai/model/data_model/shortVoiceModel.dart';
 import 'dart:io';
 import 'dart:typed_data';
@@ -53,12 +55,21 @@ void checkApneaContinuity(Shortvoicemodel shortvoice) {
         if (consecutiveApneaSeconds >= threshold) {
 
           print("!! Stop breathing for ${consecutiveApneaSeconds} seconds !!");
+
+          AlarmApnea();
+          
+          // update breath status
+          updatebreath.updateBreathingF();
+          
+
           apneacritical = true;
 
           alerted = true;
         }
       }else {
         consecutiveApneaSeconds = 0;
+
+        updatebreath.updateBreathingT();
 
         deleteAudioFile(shortVoiceItem.filePath!);
 

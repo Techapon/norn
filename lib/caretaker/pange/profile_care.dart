@@ -68,28 +68,36 @@ class ProfileCare extends StatelessWidget {
                   if (snapshot.connectionState ==  ConnectionState.waiting) {
                     return buildprofile(
                       name: "Loading...",
-                      email: ". . . ."
+                      email: ". . . .",
+                      iconSize: 47.5,
+                      titleSize: 20,
                     );
                   }
 
                   if (snapshot.hasError) {
                     return buildprofile(
                       name: "Error Loading",
-                      email: "Please try again"
+                      email: "Please try again",
+                      iconSize: 47.5,
+                      titleSize: 20,
                     );
                   }
 
                   if (!snapshot.hasData || snapshot.data == null) {
                     return buildprofile(
                       name: "No Profile Found",
-                      email: "User data not available"
+                      email: "User data not available",
+                      iconSize: 47.5,
+                      titleSize: 20,
                     );
                   }
 
                   final userData = snapshot.data!;
                   return buildprofile(
                     name: userData["username"],
-                    email: userData["email"]
+                    email: userData["email"],
+                    iconSize: 47.5,
+                    titleSize: 20,
                   );
                 }
               ),
@@ -102,9 +110,11 @@ class ProfileCare extends StatelessWidget {
                 iconcolor: Colors.transparent,
                 title: "Account",
                 bold: true,
-                bg: true,
+                bgnone: true,
                 borderType: BorderRauisType.single,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 25,
+                titleSize: 15,
               ),
 
               Padding(
@@ -123,9 +133,11 @@ class ProfileCare extends StatelessWidget {
                 iconcolor: Color(0xFFFF4C00),
                 title: "Notifications",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.single,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 25,
+                titleSize: 15,  
               ),
 
              
@@ -145,9 +157,11 @@ class ProfileCare extends StatelessWidget {
                 iconcolor: Color(0xFFFF7BA9),
                 title: "Frequently asked questions",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.top,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 25,
+                titleSize: 15, 
               ),
 
               // Send feedback
@@ -156,9 +170,11 @@ class ProfileCare extends StatelessWidget {
                 iconcolor: Color(0xFF3880EB),
                 title: "Send feedback",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.center,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 25,
+                titleSize: 15, 
               ),
 
               //Export data
@@ -167,9 +183,11 @@ class ProfileCare extends StatelessWidget {
                 iconcolor: Color(0xFF818181),
                 title: "Export data",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.bottom,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 25,
+                titleSize: 15, 
               ),
 
               SizedBox(height: 50,),
@@ -183,7 +201,7 @@ class ProfileCare extends StatelessWidget {
                   // Alert
                   MyDiaologAlert(
                     context: context,
-                    yesText: "Yes,I do",
+                    yesText: "Yes,I do",  
                     cancelText: "cancle",
                     mainText: "Log out",
                     desscrip: "Do you want to log out?",

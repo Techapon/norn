@@ -6,13 +6,22 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 
 final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+<<<<<<< HEAD
 
+=======
+final List<Uint8List> buffer = [];
+>>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 
 Future<void> recordVoiceMachince(
   bool Function() timeRunning,
   void Function(String filePath,double voicevalue , DateTime voiceStart, DateTime voiceEnd, bool ended) onData
 ) async {
+  print("I am HERE------------------------------------");
+  
+  // Create a NEW StreamController for each recording session
+  final StreamController<Uint8List> pcmController = StreamController<Uint8List>();
 
+  
   // Create Random 
   var random = Random();
   OsaBreathSimulator sim = OsaBreathSimulator(random);
@@ -27,14 +36,14 @@ Future<void> recordVoiceMachince(
   // -------------------------------
 
   // ⚡ รับ PCM data จาก recorder
-  _pcmController.stream.listen((Uint8List chunk) {
+  pcmController.stream.listen((Uint8List chunk) {
     buffer.add(chunk);
   });
 
   // // ⚡ เริ่มอัดเสียงแบบ PCM stream
   await _recorder.startRecorder(
     codec: Codec.pcm16,               
-    toStream: _pcmController.sink,   
+    toStream: pcmController.sink,   
     numChannels: 1,
     sampleRate: 16000,
   );
@@ -70,7 +79,7 @@ Future<void> recordVoiceMachince(
 
   await _recorder.stopRecorder();
   await _recorder.closeRecorder();
-  await _pcmController.close();
+  await pcmController.close();
 
   DateTime sessionEnd = DateTime.now();
   onData("",-1,sessionStart, sessionEnd, true);

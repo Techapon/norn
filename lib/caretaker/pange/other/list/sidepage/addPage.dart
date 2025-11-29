@@ -1,4 +1,4 @@
-
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:nornsabai/Myfunction/caretakerfunc/mainfunc/takecaresystem/carecontroller.dart';
@@ -22,27 +22,42 @@ class _AddpageState extends State<Addpage> {
   List<SearchItem> allGeneralUser = [];
   List<SearchItem> geneUserList = [];
   bool isLoading = true;
+  StreamSubscription<QuerySnapshot>? _userSubscription;
 
   @override
   void initState() {
     super.initState();
     _listenToUsers();
   }
+
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    searchControll.dispose();
+    super.dispose();
+  }
   
-  void _listenToUsers() {
-    FirebaseFirestore.instance
+  void _listenToUsers() async {
+    _userSubscription = FirebaseFirestore.instance
         .collection('General user') 
         .snapshots()
         .listen(
-      (snapshot) {
-        final users = snapshot.docs.map((doc) {
-          final data = doc.data();
-          return SearchItem(
-            docid: doc.id,
-            username: data['username'] ?? '', 
-            email: data['email'] ?? '', 
-          );
-        }).toList();
+      (snapshot) async {
+        if (!mounted) return;
+        
+        // Refresh excluded user IDs on each update
+        final currentExcludedIds = await _getExcludedUserIds();
+        
+        final users = snapshot.docs
+            .where((doc) => !currentExcludedIds.contains(doc.id)) // Filter out excluded users
+            .map((doc) {
+              final data = doc.data();
+              return SearchItem(
+                docid: doc.id,
+                username: data['username'] ?? '', 
+                email: data['email'] ?? '', 
+              );
+            }).toList();
 
         setState(() {
           allGeneralUser = users;
@@ -50,13 +65,15 @@ class _AddpageState extends State<Addpage> {
           if (searchControll.text.isEmpty) {
             geneUserList = users;
           } else {
-            searchUser(searchControll.text);
+            _performSearch(searchControll.text);
           }
           isLoading = false;
         });
       },
       onError: (error) {
         print('Error listening to users: $error');
+        if (!mounted) return;
+        
         setState(() {
           isLoading = false;
         });
@@ -66,6 +83,46 @@ class _AddpageState extends State<Addpage> {
         );
       },
     );
+  }
+
+  /// Get list of user IDs that should be excluded from the add friend list
+  /// (users who already have pending requests or are already in incarelist)
+  Future<Set<String>> _getExcludedUserIds() async {
+    final excludedIds = <String>{};
+    
+    try {
+      // Get users who already have pending requests
+      final requestsSnapshot = await FirebaseFirestore.instance
+          .collection('Caretaker')
+          .doc(widget.careDocId)
+          .collection('requests')
+          .get();
+      
+      for (var doc in requestsSnapshot.docs) {
+        final targetUserId = doc.data()['targetUserId'] as String?;
+        if (targetUserId != null) {
+          excludedIds.add(targetUserId);
+        }
+      }
+      
+      // Get users who are already in incarelist
+      final incarelistSnapshot = await FirebaseFirestore.instance
+          .collection('Caretaker')
+          .doc(widget.careDocId)
+          .collection('incarelist')
+          .get();
+      
+      for (var doc in incarelistSnapshot.docs) {
+        final targetUserId = doc.data()['targetUserId'] as String?;
+        if (targetUserId != null) {
+          excludedIds.add(targetUserId);
+        }
+      }
+    } catch (e) {
+      print('Error getting excluded user IDs: $e');
+    }
+    
+    return excludedIds;
   }
 
   @override
@@ -115,6 +172,7 @@ class _AddpageState extends State<Addpage> {
                 onChanged: searchUser
               ),
 
+              // General user  for add friend!!
               Expanded(
                 child: Container(
                   child: isLoading
@@ -167,7 +225,8 @@ class _AddpageState extends State<Addpage> {
       ),
     );
   }
-  void searchUser(String query) {
+
+  void _performSearch(String query) {
     final finding = allGeneralUser.where((geneUserItem) {
       final username = geneUserItem.username.toLowerCase();
       final input = query.toLowerCase();
@@ -175,10 +234,13 @@ class _AddpageState extends State<Addpage> {
       return username.contains(input);
     }).toList();
 
+    geneUserList = finding;
+  }
+
+  void searchUser(String query) {
     setState(() {
-      geneUserList = finding;
+      _performSearch(query);
     });
-    
   }
 }
 

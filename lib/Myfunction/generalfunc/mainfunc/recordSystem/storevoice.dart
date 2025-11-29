@@ -1,6 +1,7 @@
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/findmaxId.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/advanced_peak_detection.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/putsession.dart';
+import 'package:nornsabai/genaraluser/pange/otherpage/record/uploadingses.dart';
 import 'package:nornsabai/model/data_model/shortVoiceModel.dart';
 
 
@@ -43,9 +44,11 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     print("Stored!! short voice id : ${shortVoice.id} | type : ${shortVoice.shortValue}" );
 
   }else {
+    
     print("End at : ${shortVoice.id} \n ${shortVoice.shortValue} \n ${shortVoice.aianalyzereault} \n ${shortVoice.ended}");
 
     // add apnea session path
+<<<<<<< HEAD
     // if (sessionTemStore["apneasessionpath"] != null) {
     //   int countapneasession = 0;
     //   for (var apneasessionItem in sessionTemStore["apneasessionpath"]) {
@@ -56,6 +59,15 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     //     print("Apnea session path$countapneasession : ${apneasessionItem.filePath}");
     //   }
     // }
+=======
+    int countapneasession = 0;
+    if (sessionTemStore["apneasessionpath"] != null) {
+      sessionTemStore["apneasessionpath"].forEach((key, apneasessionItem) {
+        countapneasession++;
+        print("Apnea session path$countapneasession : ${apneasessionItem['path']}");
+      });
+    }
+>>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 
     // -------------------------------------
 
@@ -68,55 +80,55 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     sessionTemStore["lound"] = lound;
     sessionTemStore["verylound"] = verylound;
 
-    // Format main data - 30-minute intervals (1800 seconds)
-    int hourscount = 0;    
-    while (listOfAllShort.length >= 3600) {
-      hourscount++;
-      sessionTemStore["sleepdetail"]["hour${hourscount}"] = <String, dynamic>{
-        "id" : hourscount,
-      };
+      // Format main data - 30-minute intervals (1800 seconds)
+      int hourscount = 0;    
+      while (listOfAllShort.length >= 3600) {
+        hourscount++;
+        sessionTemStore["sleepdetail"]["hour${hourscount}"] = <String, dynamic>{
+          "id" : hourscount,
+        };
 
-        int minutecount = 0;
-        // Process 30-minute chunks (2 per hour: 0-30min, 30-60min)
-        while (listOfAllShort.length >= 1800) {
-          if (minutecount == 2) {
-            minutecount = 0;
-            break;
-          };
-          minutecount++;
+          int minutecount = 0;
+          // Process 30-minute chunks (2 per hour: 0-30min, 30-60min)
+          while (listOfAllShort.length >= 1800) {
+            if (minutecount == 2) {
+              minutecount = 0;
+              break;
+            };
+            minutecount++;
 
-          // Very strict peak detection (max 3 peaks per 30-min interval)
-          final chunk = listOfAllShort.sublist(0, 1800 + 1);
-          final peakResult = detectPeaksAdvanced(
-            chunk,
-            windowSize: 10,
-            sdMultiplier: 10.0,
-            minProminence: 20.0,
-            slopeThreshold: 3.75,
-            adaptiveThreshold: true,
-            maxPeaksPerInterval: 3,
-          );
+            // Very strict peak detection (max 3 peaks per 30-min interval)
+            final chunk = listOfAllShort.sublist(0, 1800 + 1);
+            final peakResult = detectPeaksAdvanced(
+              chunk,
+              windowSize: 10,
+              sdMultiplier: 10.0,
+              minProminence: 20.0,
+              slopeThreshold: 3.75,
+              adaptiveThreshold: true,
+              maxPeaksPerInterval: 3,
+            );
 
-          // Build dot list: ensure first and last are included
-          List<double> dotList = List.from(peakResult.values);
-          if (dotList.isEmpty || dotList.first != chunk.first) {
-            dotList.insert(0, chunk.first);
+            // Build dot list: ensure first and last are included
+            List<double> dotList = List.from(peakResult.values);
+            if (dotList.isEmpty || dotList.first != chunk.first) {
+              dotList.insert(0, chunk.first);
+            }
+            if (dotList.isEmpty || dotList.last != chunk.last) {
+              dotList.add(chunk.last);
+            }
+
+            peakcount += dotList.length;
+
+            sessionTemStore["sleepdetail"]["hour${hourscount}"]["minute30-${minutecount}"] = {
+              "id": minutecount,
+              "dot": dotList,
+            };
+            listOfAllShort.removeRange(0, 1800 + 1);
           }
-          if (dotList.isEmpty || dotList.last != chunk.last) {
-            dotList.add(chunk.last);
-          }
+      }
 
-          peakcount += dotList.length;
-
-          sessionTemStore["sleepdetail"]["hour${hourscount}"]["minute30-${minutecount}"] = {
-            "id": minutecount,
-            "dot": dotList,
-          };
-          listOfAllShort.removeRange(0, 1800 + 1);
-        }
-    }
-
-    formatRemainder();
+      formatRemainder();
 
     print("TOTAL : ${totalsession}");
     print("All dots : ${peakcount}");
@@ -157,7 +169,11 @@ Map<String,dynamic> createSession() {
     "lound": null,
     "verylound": null,
     "note": "",
+<<<<<<< HEAD
     "apneasessionpath": <String, dynamic> {},
+=======
+    "apneasessionpath": <String, dynamic>{},
+>>>>>>> 2461ab2 (discover 1 + large ui -- v1)
     "sleepdetail": <String, dynamic>{
       "remainer": <List<double>>[] 
     }

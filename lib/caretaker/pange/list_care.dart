@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/Myfunction/caretakerfunc/mainfunc/takecaresystem/carecontroller.dart';
+import 'package:nornsabai/Myfunction/globalFunc/alarmsystem/screen/alarm_care.dart';
 import 'package:nornsabai/caretaker/pange/other/list/sidepage/addPage.dart';
 import 'package:nornsabai/caretaker/pange/other/list/widget/incareshow.dart';
 import 'package:nornsabai/model/data_model/requestmodel.dart';
@@ -16,7 +17,24 @@ class ListCare extends StatefulWidget {
 }
 
 class _ListCareState extends State<ListCare> {
-  final CaretakerFriendSystem carecontroller = CaretakerFriendSystem(); 
+  final CaretakerFriendSystem carecontroller = CaretakerFriendSystem();
+  
+  // Track users who have already triggered an alarm to prevent duplicates
+  final Set<String> _alarmTriggeredUsers = {};
+
+  bool alarm = false;
+  
+  // Search functionality
+  final searchControll = TextEditingController();
+  List<FriendRequestWithUserData> allIncareUsers = [];
+  List<FriendRequestWithUserData> filteredIncareUsers = [];
+
+  @override
+  void dispose() {
+    searchControll.dispose();
+    super.dispose();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -24,7 +42,27 @@ class _ListCareState extends State<ListCare> {
         padding: EdgeInsets.symmetric(horizontal: 15,vertical: 20),
         child: Column(
           children: [
-            // add friends
+            // search user in list
+            SearchBar(
+                leading: Icon(Icons.search,color: Color(0xFF78AEBA),size: 35,),
+                hintText: "Search",
+                backgroundColor: WidgetStateProperty.all(Color(0xFFBEEDF7)),
+                shadowColor: WidgetStateProperty.all(Colors.transparent),
+                shape: WidgetStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24)
+                  )
+                ),
+                padding: WidgetStateProperty.all(EdgeInsets.symmetric(horizontal: 10)),
+
+                controller: searchControll,
+
+                onChanged: searchUser
+              ),
+
+            SizedBox(height: 10),
+
+            // add friends button
             IconButton(
               style: IconButton.styleFrom(
                 backgroundColor: Color(0xFFBEEDF7),
@@ -40,7 +78,8 @@ class _ListCareState extends State<ListCare> {
               },
               icon: Icon(Icons.person_add_alt_1_rounded,color: Color(0xFF78AEBA),size: 30,)
             ),
-
+            
+            // user in care list
             Expanded(
               child: Container(
                 child: StreamBuilder<List<FriendRequestWithUserData>>(
@@ -57,14 +96,84 @@ class _ListCareState extends State<ListCare> {
 
                     final requestsWithData = snapshot.data ?? [];
 
-                    if (requestsWithData.isEmpty) {
-                      return const Center(child: Text('No pending requests'));
+                    // Update lists for search functionality
+                    allIncareUsers = requestsWithData;
+                    
+                    // Apply search filter if search text is not empty
+                    if (searchControll.text.isEmpty) {
+                      filteredIncareUsers = requestsWithData;
+                    } else {
+                      // Keep the current filtered list (updated by searchUser method)
+                      // This prevents resetting the search when stream updates
+                    }
+
+                    // Check for users who stopped breathing and trigger alarm
+                    for (var request in requestsWithData) {
+                      final isBreathing = request.targetUser?.isBreathing;
+                      final userId = request.targetUser?.userId ?? '';
+                      
+                      print("ISBE-----------------------${isBreathing}");
+
+                      if (isBreathing == null) {
+                        
+                        _alarmTriggeredUsers.remove(userId);
+                        print("${request.targetUser?.username} is not in sleep session");
+
+                        if (alarm) {
+                          Navigator.of(context).pop();
+                        }
+
+                        alarm = false;
+                      } else if (isBreathing == true) {
+                        
+                        _alarmTriggeredUsers.remove(userId);
+                        print("${request.targetUser?.username} is breathing normally");
+
+                       
+                        if (alarm) {
+                          Navigator.of(context).pop();
+                        }
+
+                        alarm = false;
+                      } else {
+                        
+                        if (!_alarmTriggeredUsers.contains(userId)) {
+                          
+                          _alarmTriggeredUsers.add(userId);
+                          print('User stopped breathing: Name: ${request.targetUser?.username}, Email: ${request.targetUser?.email}');
+                          
+                          // Schedule navigation after build phase completes
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            AlarmInCare(
+                              username: request.targetUser?.username ?? "Unknow user",
+                              email: request.targetUser?.email ?? "Unknow email"
+                            );
+                          });
+
+
+                          alarm = true;
+      
+                        }
+                      }
+                    }
+
+                    // Use filtered list for display
+                    final displayList = filteredIncareUsers.isEmpty && searchControll.text.isNotEmpty 
+                        ? <FriendRequestWithUserData>[]
+                        : filteredIncareUsers;
+
+                    if (displayList.isEmpty && searchControll.text.isEmpty) {
+                      return const Center(child: Text('No users in care list'));
+                    }
+
+                    if (displayList.isEmpty && searchControll.text.isNotEmpty) {
+                      return const Center(child: Text('No users found'));
                     }
 
                     return ListView.builder(
-                      itemCount: requestsWithData.length,
+                      itemCount: displayList.length,
                       itemBuilder: (context, index) {
-                        final request = requestsWithData[index];
+                        final request = displayList[index];
 
                         return Container(
                           margin: EdgeInsets.symmetric(vertical: 10),
@@ -169,5 +278,24 @@ class _ListCareState extends State<ListCare> {
         )
       ),
     );
+  }
+
+  // Search functionality methods
+  void _performSearch(String query) {
+    final finding = allIncareUsers.where((userRequest) {
+      final username = userRequest.targetUser?.username?.toLowerCase() ?? '';
+      final email = userRequest.targetUser?.email?.toLowerCase() ?? '';
+      final input = query.toLowerCase();
+
+      return username.contains(input) || email.contains(input);
+    }).toList();
+
+    filteredIncareUsers = finding;
+  }
+
+  void searchUser(String query) {
+    setState(() {
+      _performSearch(query);
+    });
   }
 }

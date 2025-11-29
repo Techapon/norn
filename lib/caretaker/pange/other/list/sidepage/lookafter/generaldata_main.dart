@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nornsabai/caretaker/pange/other/list/sidepage/lookafter/generaldata_other/resultuser.dart';
 import 'package:nornsabai/caretaker/pange/other/list/sidepage/lookafter/generaldata_other/trend.dart';
-import 'package:nornsabai/genaraluser/pange/result_ganeral.dart';
 import 'package:nornsabai/model/data_model/requestmodel.dart';
 
 class Generalprofile extends StatefulWidget {

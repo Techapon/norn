@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/Myfunction/globalFunc/trendgraph.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/preriod.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/typepop.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/detail.dart';
-import 'package:nornsabai/model/reuse_model/color_model.dart';
+
+// from general widget
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/geneWd/g_trend/g_typepop.dart';
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/geneWd/g_trend/g_detail.dart';
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/geneWd/g_trend/g_period.dart';
+
 import 'package:provider/provider.dart';
 
 
@@ -157,8 +159,8 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
             // Main widget
             return Padding(
               padding: EdgeInsetsGeometry.only(
-                left: 20,
-                right: 20,
+                left: 30,
+                right: 30,
                 top: 5
               ),
               child: Column(
@@ -168,22 +170,22 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                        Padding(
-                        padding: EdgeInsetsGeometry.symmetric(vertical: 15),
+                        padding: EdgeInsetsGeometry.symmetric(vertical: 30),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              "Snore",
-                              style: GoogleFonts.itim(fontSize: 25,color: headColor[0]),
+                              "Sleep",
+                              style: GoogleFonts.itim(fontSize: 45,color: headColor[0]),
                             ),
                             SizedBox(width: 5,),
                             Text(
-                              "Score",
-                              style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
+                              "Trend",
+                              style: GoogleFonts.itim(fontSize: 45,color: headColor[1]),
                             ),
                             // SizedBox(width: 5,),
-                            Icon(Icons.bar_chart,color: Colors.black,size: 27.5,)
+                            Icon(Icons.bar_chart,color: Colors.black,size: 50,)
                           ],
                         ),
                       ),
@@ -196,7 +198,9 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                     children: [
                       SleepdataSelector(controller: controller),
                     ],
-                  ),  
+                  ),
+
+                  // SizedBox(height: 17.5,),
 
                   // Chart
                   Padding(
@@ -268,7 +272,7 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final barCount = chartData.length;
 
-    final minWidthPerBar = 60.0;
+    final minWidthPerBar = 100.0;
     final totalMinWidth = barCount * minWidthPerBar;
 
     final needScroll = totalMinWidth > screenWidth;
@@ -319,7 +323,7 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
         clipBehavior: Clip.none,
         scrollDirection: Axis.horizontal,
         child: SizedBox(
-          height: 275,
+          height: 450,
           width:  totalMinWidth,
           child: chartWidget,
         ),
@@ -327,7 +331,7 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
     }
 
     return SizedBox(
-      height: 275,
+      height: 450,
       child: chartWidget,
     );
   }
@@ -360,18 +364,18 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
               padding: EdgeInsets.only(top: 8),
               child: Text(
                 chartData[index].bottomTitle,
-                style: GoogleFonts.itim(fontSize: 12),
+                style: GoogleFonts.itim(fontSize: 17.5),
                 textAlign: TextAlign.center,
               ),
             );
           },
-          reservedSize: 40,
+          reservedSize: 60,
         ),
       ),
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-          reservedSize: 50,
+          reservedSize: 65,
           interval: 25,
           getTitlesWidget: (value, meta) {
             if (isPercentage) {
@@ -380,7 +384,7 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                   value == 75 || value == 100) {
                 return Padding(
                   padding:EdgeInsetsGeometry.only(right:10),
-                  child: Text('${value.toInt()}%', style: GoogleFonts.itim(fontSize: 12),textAlign: TextAlign.end,),
+                  child: Text('${value.toInt()}%', style: GoogleFonts.itim(fontSize: 17.5),textAlign: TextAlign.end,),
                 );
               }
             } else {
@@ -389,7 +393,7 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                 int hours = (value / 60).toInt();
                 return Padding(
                   padding:EdgeInsetsGeometry.only(right:8),
-                  child: Text('$hours:00 h', style: GoogleFonts.itim(fontSize: 12) ,textAlign: TextAlign.end,),
+                  child: Text('$hours:00 h', style: GoogleFonts.itim(fontSize: 17.5) ,textAlign: TextAlign.end,),
                 );
               }
             }

@@ -8,6 +8,8 @@ import 'package:nornsabai/caretaker/pange/profile_care.dart';
 import 'package:nornsabai/caretaker/pange/request_care.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
+
+
 class CaretakerMainPage extends StatefulWidget {
   const CaretakerMainPage({super.key});
   
@@ -16,10 +18,10 @@ class CaretakerMainPage extends StatefulWidget {
 }
 
 class _GeneralMainPageState extends State<CaretakerMainPage> {
-  int _currentIndex = 0; 
+  int _currentIndex = 0;                                                      
 
   Color navbarcolor = BgColor.BottomNav_bg.color_code;
-
+  
   String? myDocId;
 
   bool isLoading = true;

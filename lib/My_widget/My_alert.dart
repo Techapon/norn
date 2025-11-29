@@ -24,6 +24,22 @@ void MyDiaologAlertFuture({
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (context, setStateDialog) {
+
+          final mediascreen = MediaQuery.of(context).size.width;
+          
+          double maintextscale = mediascreen / 20;
+          double desscripscale = maintextscale * 0.7;
+
+          double insetpadding = maintextscale  * 4.0;
+          double alrtpadding = maintextscale  * 0.8;
+          double btnpadding = maintextscale  * 0.4;
+
+          double loadingsize = maintextscale  * 2.8;
+          double iconraduis = maintextscale  * 1.4;
+          double iconsize = maintextscale  * 1.6;
+
+          double borderraduis = maintextscale  * 0.24;
+
  
           return WillPopScope(
             onWillPop: () async => !isloading,
@@ -32,22 +48,22 @@ void MyDiaologAlertFuture({
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
-              // insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 50),
+              insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
               child: SingleChildScrollView(
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(6)
+                    borderRadius: BorderRadius.circular(borderraduis)
                   ),
                   child: isloading
                     ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             SizedBox(
-                              height: 70,
-                              width: 70,
+                              height: loadingsize,
+                              width: loadingsize,
                               child: CircularProgressIndicator(
                                   color: Colors.grey[200],
                                   strokeWidth: 5.0,
@@ -55,7 +71,7 @@ void MyDiaologAlertFuture({
                                 ),
                             ),
                             SizedBox(height: 20,),
-                            Text("Please Wait...",style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                            Text("Please Wait...",style: GoogleFonts.itim(fontSize: desscripscale ,color: Colors.black,fontWeight: FontWeight.w400),)
                           ],
                       ),
                     )
@@ -63,11 +79,11 @@ void MyDiaologAlertFuture({
                     ? Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.symmetric(vertical: alrtpadding),
                           child: Column(
                               children: [
-                                Text("${mainText}",style:  GoogleFonts.itim(fontSize: 22.5,fontWeight: FontWeight.bold),),
-                                Text("${desscrip}",style:  GoogleFonts.itim(color: Colors.black87,fontSize: 15),textAlign: TextAlign.center,)
+                                Text("${mainText}",style:  GoogleFonts.itim(fontSize: maintextscale,fontWeight: FontWeight.bold),),
+                                Text("${desscrip}",style:  GoogleFonts.itim(color: Colors.black87,fontSize:  desscripscale),textAlign: TextAlign.center,)
                               ],
                             )
                         ),
@@ -81,7 +97,7 @@ void MyDiaologAlertFuture({
                             Expanded(
                               child: TextButton(
                                 style: FilledButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(horizontal: 0,vertical: 10),
+                                  padding: EdgeInsets.symmetric(horizontal: 0,vertical: btnpadding),
                                   // backgroundColor: BgColor.Bg1_dark.color_code,
                                   foregroundColor: Colors.red,
                                   shape: RoundedRectangleBorder(
@@ -91,7 +107,7 @@ void MyDiaologAlertFuture({
                                 onPressed: (){
                                   Navigator.of(context).pop();
                                 },
-                                child: Text("${cancelText}",style:  GoogleFonts.itim(fontSize: 17.5),)
+                                child: Text("${cancelText}",style:  GoogleFonts.itim(fontSize: desscripscale),textAlign: TextAlign.center,)
                               ),
                             ),
             
@@ -99,7 +115,7 @@ void MyDiaologAlertFuture({
                             Expanded(
                               child: TextButton(
                                 style: FilledButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                  padding: EdgeInsets.symmetric(horizontal: 0,vertical: btnpadding),
                                   // backgroundColor: BgColor.Bg1_dark.color_code,
                                   foregroundColor: Colors.blue,
                                   shape: RoundedRectangleBorder(
@@ -126,7 +142,7 @@ void MyDiaologAlertFuture({
                                     });
                                   }
                                 },
-                                child: Text("${yesText}",style:  GoogleFonts.itim(fontSize: 17.5),)
+                                child: Text("${yesText}",style:  GoogleFonts.itim(fontSize: desscripscale),)
                               ),
                             ),
                           ],
@@ -135,32 +151,32 @@ void MyDiaologAlertFuture({
                     )
                     : successed
                     ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             CircleAvatar(
-                              radius: 35,
+                              radius: iconraduis,
                               backgroundColor: const Color.fromARGB(255, 63, 189, 67),
-                              child: Icon(Icons.check,color: Colors.white,size:40,),
+                              child: Icon(Icons.check,color: Colors.white,size: iconsize,),
                             ),
                             SizedBox(height: 20,),
-                            Text(whenSuccess,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                            Text(whenSuccess,style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),textAlign: TextAlign.center,)
                           ],
                       ),
                     )
                     : Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: EdgeInsets.symmetric(vertical: alrtpadding),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               CircleAvatar(
-                                radius: 35,
+                                radius: iconraduis,
                                 backgroundColor: const Color.fromARGB(255, 192, 60, 60),
-                                child: Icon(Icons.close,color: Colors.white,size:40,),
+                                child: Icon(Icons.close,color: Colors.white,size: iconsize,),
                               ),
                               SizedBox(height: 20,),
-                              Text(whenFail,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                              Text(whenFail,style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),)
                             ],
                         ),
                       )
@@ -193,26 +209,42 @@ void MyDiaologAlert({
     barrierDismissible: true,   
     builder: (BuildContext context) {
       bool isloading = false;
+
+      final mediascreen = MediaQuery.of(context).size.width;
+      
+      double maintextscale = mediascreen / 20;
+      double desscripscale = maintextscale * 0.7;
+
+      double insetpadding = maintextscale  * 4.0;
+      double alrtpadding = maintextscale  * 0.8;
+      double btnpadding = maintextscale  * 0.4;
+
+      // double loadingsize = maintextscale  * 2.8;
+      // double iconraduis = maintextscale  * 1.4;
+      // double iconsize = maintextscale  * 1.6;
+
+      double borderraduis = maintextscale  * 0.24;
+
       return Dialog(
         backgroundColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(4),
         ),
-        // insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 50),
+        insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
         child: SingleChildScrollView(
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(6)
+              borderRadius: BorderRadius.circular(borderraduis)
             ),
             child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    padding: EdgeInsets.symmetric(vertical: alrtpadding),
                     child: Column(
                         children: [
-                          Text("${mainText}",style:  GoogleFonts.itim(fontSize: 22.5,fontWeight: FontWeight.bold),),
-                          Text("${desscrip}",style:  GoogleFonts.itim(color: Colors.black87,fontSize: 15),textAlign: TextAlign.center,)
+                          Text("${mainText}",style:  GoogleFonts.itim(fontSize: maintextscale,fontWeight: FontWeight.bold),),
+                          Text("${desscrip}",style:  GoogleFonts.itim(color: Colors.black87,fontSize: desscripscale),textAlign: TextAlign.center,)
                         ],
                       )
                   ),
@@ -226,8 +258,7 @@ void MyDiaologAlert({
                       Expanded(
                         child: TextButton(
                           style: FilledButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 0,vertical: 10),
-                            // backgroundColor: BgColor.Bg1_dark.color_code,
+                            padding: EdgeInsets.symmetric(horizontal: 0,vertical: btnpadding),
                             foregroundColor: Colors.red,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(0),
@@ -236,7 +267,7 @@ void MyDiaologAlert({
                           onPressed: (){
                             Navigator.of(context).pop();
                           },
-                          child: Text("${cancelText}",style:  GoogleFonts.itim(fontSize: 17.5),)
+                          child: Text("${cancelText}",style:  GoogleFonts.itim(fontSize: desscripscale),)
                         ),
                       ),
       
@@ -244,15 +275,14 @@ void MyDiaologAlert({
                       Expanded(
                         child: TextButton(
                           style: FilledButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-                            // backgroundColor: BgColor.Bg1_dark.color_code,
+                            padding: EdgeInsets.symmetric(horizontal: 20,vertical: btnpadding),
                             foregroundColor: Colors.blue,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(0),
                             ),
                           ),
                           onPressed: onpressed,
-                          child: Text("${yesText}",style:  GoogleFonts.itim(fontSize: 17.5),)
+                          child: Text("${yesText}",style:  GoogleFonts.itim(fontSize: desscripscale),)
                         ),
                       ),
                     ],
@@ -285,6 +315,23 @@ void MyDiaologNoasktFuture({
     context: context,
     barrierDismissible: true,   
     builder: (BuildContext context) {
+    
+    final mediascreen = MediaQuery.of(context).size.width;
+
+    double maintextscale = mediascreen / 20;
+    double desscripscale = maintextscale * 0.7;
+
+    double insetpadding = maintextscale  * 4.0;
+    double alrtpadding = maintextscale  * 0.8;
+    // double btnpadding = maintextscale  * 0.4;
+
+    double loadingsize = maintextscale  * 2.8;
+    double iconraduis = maintextscale  * 1.4;
+    double iconsize = maintextscale  * 1.6;
+
+    double borderraduis = maintextscale  * 0.24;
+
+
       return StatefulBuilder(
         builder: (context, setStateDialog) {
                     // เรียก future หลังจาก dialog ถูกสร้าง
@@ -301,7 +348,7 @@ void MyDiaologNoasktFuture({
 
               // ปิดหลัง 2 วิถ้าสำเร็จ
               if (result) {
-                Future.delayed(Duration(seconds: 2)).then((_) {
+                Future.delayed(Duration(seconds: 4)).then((_) {
                   Navigator.of(context).pop();
                 });
               }
@@ -315,22 +362,22 @@ void MyDiaologNoasktFuture({
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
-              // insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 50),
+              insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
               child: SingleChildScrollView(
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(6)
+                    borderRadius: BorderRadius.circular(borderraduis)
                   ),
                   child: isloading
                     ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             SizedBox(
-                              height: 70,
-                              width: 70,
+                              height: loadingsize,
+                              width: loadingsize,
                               child: CircularProgressIndicator(
                                   color: Colors.grey[200],
                                   strokeWidth: 5.0,
@@ -338,23 +385,23 @@ void MyDiaologNoasktFuture({
                                 ),
                             ),
                             SizedBox(height: 20,),
-                            Text("Please Wait...",style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                            Text("Please Wait...",style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),)
                           ],
                       ),
                     )
                     : successed
                     ? Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             CircleAvatar(
-                              radius: 35,
+                              radius: iconraduis,
                               backgroundColor: const Color.fromARGB(255, 63, 189, 67),
-                              child: Icon(Icons.check,color: Colors.white,size:40,),
+                              child: Icon(Icons.check,color: Colors.white,size: iconsize,),
                             ),
                             SizedBox(height: 20,),
-                            Text(whenSuccess,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                            Text(whenSuccess,style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),)
                           ],
                       ),
                     )
@@ -364,12 +411,12 @@ void MyDiaologNoasktFuture({
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               CircleAvatar(
-                                radius: 35,
+                                radius: iconraduis,
                                 backgroundColor: const Color.fromARGB(255, 192, 60, 60),
-                                child: Icon(Icons.close,color: Colors.white,size:40,),
+                                child: Icon(Icons.close,color: Colors.white,size: iconsize,),
                               ),
                               SizedBox(height: 20,),
-                              Text(whenFail,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                              Text(whenFail,style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),)
                             ],
                         ),
                       )
@@ -383,3 +430,210 @@ void MyDiaologNoasktFuture({
   );
 } 
 
+
+
+// --------------------------
+//   SIGLE 
+// --------------------------
+
+
+void MyDiaologAlertLoad({
+  required BuildContext context,
+  required String desscrip,
+  required bool pop
+}) {
+  
+  showDialog(
+    context: context,
+    barrierDismissible: pop,   
+    builder: (BuildContext context) {
+
+    final mediascreen = MediaQuery.of(context).size.width;
+
+    double maintextscale = mediascreen / 20;
+    // double desscripscale = maintextscale * 0.7;
+
+    double insetpadding = maintextscale  * 4.0;
+    double alrtpadding = maintextscale  * 0.8;
+    // double btnpadding = maintextscale  * 0.4;
+
+    double loadingsize = maintextscale  * 2.8;
+    // double iconraduis = maintextscale  * 1.4;
+    // double iconsize = maintextscale  * 1.6;
+
+    double borderraduis = maintextscale  * 0.24;
+
+      return WillPopScope(
+        onWillPop: () async => pop,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
+          child: SingleChildScrollView(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(borderraduis)
+              ),
+              child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              height: loadingsize,
+                              width: loadingsize,
+                              child: CircularProgressIndicator(
+                                  color: Colors.grey[200],
+                                  strokeWidth: 5.0,
+                                  backgroundColor: Colors.grey[300],
+                                ),
+                            ),
+                            SizedBox(height: 20,),
+                            Text(desscrip,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                          ],
+                      ),
+                    ),
+                  ],
+                ),
+            ),
+          )
+        ),
+      );
+    }
+  );
+}
+
+
+void MyDiaologAlertSuccess({
+  required BuildContext context,
+  required String whenSuccess,
+}) {
+  
+  showDialog(
+    context: context,
+    barrierDismissible: true,   
+    builder: (BuildContext context) {
+
+      final mediascreen = MediaQuery.of(context).size.width;
+
+      double maintextscale = mediascreen / 20;
+      double desscripscale = maintextscale * 0.7;
+
+      double insetpadding = maintextscale  * 4.0;
+      double alrtpadding = maintextscale  * 0.8;
+      // double btnpadding = maintextscale  * 0.4;
+
+      // double loadingsize = maintextscale  * 2.8;
+      double iconraduis = maintextscale  * 1.4;
+      double iconsize = maintextscale  * 1.6;
+
+      double borderraduis = maintextscale  * 0.24;
+    
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderraduis),
+        ),
+        insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
+        child: SingleChildScrollView(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6)
+            ),
+            child: Column(
+                children: [
+                  Padding(
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CircleAvatar(
+                              radius: iconraduis,
+                              backgroundColor: const Color.fromARGB(255, 63, 189, 67),
+                              child: Icon(Icons.check,color: Colors.white,size:iconsize,),
+                            ),
+                            SizedBox(height: 20,),
+                            Text(whenSuccess,style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),)
+                          ],
+                      ),
+                    )
+                ],
+              ),
+          ),
+        )
+      );
+    }
+  );
+}
+
+
+//   FAIL
+
+void MyDiaologAlertFail({
+  required BuildContext context,
+  required String whenFail,
+}) {
+  
+  showDialog(
+    context: context,
+    barrierDismissible: true,   
+    builder: (BuildContext context) {
+
+      final mediascreen = MediaQuery.of(context).size.width;
+
+      double maintextscale = mediascreen / 20;
+      double desscripscale = maintextscale * 0.7;
+
+      double insetpadding = maintextscale  * 4.0;
+      double alrtpadding = maintextscale  * 0.8;
+      // double btnpadding = maintextscale  * 0.4;
+
+      // double loadingsize = maintextscale  * 2.8;
+      double iconraduis = maintextscale  * 1.4;
+      double iconsize = maintextscale  * 1.6;
+
+      double borderraduis = maintextscale  * 0.24;
+    
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderraduis),
+        ),
+        insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
+        child: SingleChildScrollView(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6)
+            ),
+            child: Column(
+                children: [
+                  Padding(
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CircleAvatar(
+                              radius: iconraduis,
+                              backgroundColor: const Color.fromARGB(255, 192, 60, 60),
+                              child: Icon(Icons.close,color: Colors.white,size:iconsize,),
+                            ),
+                            SizedBox(height: 20,),
+                            Text(whenFail,style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),)
+                          ],
+                      ),
+                    )
+                ],
+              ),
+          ),
+        )
+      );
+    }
+  );
+}

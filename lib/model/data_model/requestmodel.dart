@@ -108,16 +108,18 @@ class UserData {
   final String userId;
   final String username;
   final String email;
+  final bool? isBreathing;
 
   UserData({
     required this.userId,
     required this.username,
     required this.email,
+    this.isBreathing,
   });
 
   @override
   String toString() {
-    return 'UserData(userId: $userId, username: $username, email: $email)';
+    return 'UserData(userId: $userId, username: $username, email: $email, isBreathing: $isBreathing)';
   }
 }
 

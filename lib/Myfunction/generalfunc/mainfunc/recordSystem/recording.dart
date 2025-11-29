@@ -5,17 +5,27 @@ import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/limulator
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/limulator/ai.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/checkapnea.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
+import 'package:nornsabai/genaraluser/general_main.dart';
+import 'package:nornsabai/genaraluser/pange/otherpage/record/uploadingses.dart';
 import 'package:nornsabai/model/data_model/shortVoiceModel.dart';
 
+<<<<<<< HEAD
 int totoalseconds = 0;
 int id = 0;
 Function? onSaveSuccess;
 
+=======
+int id = 0;
+>>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 class Runtime {
   late Timer timer; 
   bool isRunning = false;
 
   // id
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 
   late DateTime now;
 
@@ -44,11 +54,16 @@ class Runtime {
       ontick();
     });
 
+    // update breath status
+    updatebreath.updateBreathingT();
+
     recordVoiceMachince(() => isRunning, (filepath,voiceValue,startAt,endAT,ended) {
       
       if (!ended) {
         
         id++;
+
+        print(filepath);
 
         // // craeate class for short voice
         Shortvoicemodel shortvoice = Shortvoicemodel(
@@ -82,6 +97,7 @@ class Runtime {
         print("Endddd voice ${id}");
 
         AiAnalyzeSound(shortvoice);
+<<<<<<< HEAD
 
         totoalseconds = 0;
         id = 0;
@@ -89,6 +105,9 @@ class Runtime {
         timer.cancel();
         ontick();
 
+=======
+    
+>>>>>>> 2461ab2 (discover 1 + large ui -- v1)
       }
     });
   }
@@ -96,6 +115,18 @@ class Runtime {
   // Stop function
   void stopTimer(void Function() ontick) {
     if (!isRunning) return;
+<<<<<<< HEAD
+=======
+    uploading = true;
+
+    // update breath status
+    updatebreath.updateBreathingNll();
+
+    totoalseconds = 0;
+    
+    alerted = false;
+
+>>>>>>> 2461ab2 (discover 1 + large ui -- v1)
     isRunning = false;
 
   }

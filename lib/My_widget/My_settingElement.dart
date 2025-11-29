@@ -8,9 +8,13 @@ class settingElement extends StatelessWidget {
   final Color iconcolor;
   final String title;
   final bool bold;
-  final bool bg;
+  final bool bgnone;
   final BorderRauisType borderType;
   final VoidCallback? onclick;
+
+  // for responsive
+  final double iconSize;
+  final double titleSize;
 
   const settingElement({
     super.key,
@@ -18,9 +22,11 @@ class settingElement extends StatelessWidget {
     required this.iconcolor,
     required this.title,
     required this.bold,
-    required this.bg,
+    required this.bgnone,
     required this.borderType,
     required this.onclick,
+    required this.iconSize,
+    required this.titleSize,
   });
 
   @override
@@ -47,17 +53,17 @@ class settingElement extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  margin: EdgeInsets.all(12),
-                  padding: EdgeInsets.all(bg ? 0 :7),
+                  margin: EdgeInsets.all(iconSize * 0.35),
+                  padding: EdgeInsets.all(bgnone ? 0 :iconSize * 0.28),
                   decoration: BoxDecoration(
-                    color: bg ? Colors.transparent : iconcolor,
+                    color: bgnone ? Colors.transparent : iconcolor,
                     borderRadius: BorderRadius.circular(10)
                   ),
-                  child: Icon(icon,color: bg ? Color(0xFF8DA2AA) : Colors.white ,size: bg ? 35 :25,),
+                  child: Icon(icon,color: bgnone ? Color(0xFF8DA2AA) : Colors.white ,size: bgnone ? iconSize *1.6 : iconSize,),
                 ),
                 Text(
                   title,
-                  style: GoogleFonts.itim(color: Colors.white,fontSize: 15,fontWeight: bold ? FontWeight.bold : FontWeight.w400),
+                  style: GoogleFonts.itim(color: Colors.white,fontSize: titleSize,fontWeight: bold ? FontWeight.bold : FontWeight.w400),
                 )          
               ],
             ),
@@ -75,29 +81,36 @@ class settingElement extends StatelessWidget {
 Widget buildprofile({
   required String name,
   required String email,
+  required double iconSize,
+  required double titleSize,
 }) {
   return Container(
     decoration: BoxDecoration(
       color: Color(0xFF344754),
       borderRadius: BorderRadius.circular(20)
     ),
-    child: ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.grey,
-        radius: 25,
-        child: Icon(Icons.person,color: Colors.white,size: 42.5,),
-      ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(name,style: GoogleFonts.itim(color: Colors.white,fontSize: 20,height: 1,fontWeight: FontWeight.bold),),
-          SizedBox(height: 4),
-          Text(email,style: GoogleFonts.itim(color: Colors.white,fontSize: 11,height: 1),)
-        ],
-      ),
-      tileColor: Color.fromARGB(255, 243, 245, 246),
-      contentPadding: EdgeInsets.all(11),
+    child: Row(
+      children: [
+        Container(
+          margin: EdgeInsets.all(iconSize * 0.25),
+          padding: EdgeInsets.all(iconSize * 0.14),
+          decoration: BoxDecoration(
+            color: Colors.grey,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.person,color: Colors.white,size: iconSize,),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(name,style: GoogleFonts.itim(color: Colors.white,fontSize: titleSize,height: 1,fontWeight: FontWeight.bold),),
+            SizedBox(height: 4),
+            Text(email,style: GoogleFonts.itim(color: Colors.white,fontSize: titleSize-9,height: 1),)
+          ],
+        ),
+      ],
     ),
   );
 }

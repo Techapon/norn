@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/Myfunction/globalFunc/trendgraph.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/preriod.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/typepop.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/trend/widget_func/detail.dart';
+// from general widget
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/careWd/c_trend/c_typepop.dart';
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/careWd/c_trend/c_detail.dart';
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/careWd/c_trend/c_period.dart';
+
 import 'package:nornsabai/model/data_model/requestmodel.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 import 'package:provider/provider.dart';
@@ -178,12 +180,12 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Snore",
+                                  "Sleep",
                                   style: GoogleFonts.itim(fontSize: 25,color: headColor[0]),
                                 ),
                                 SizedBox(width: 5,),
                                 Text(
-                                  "Score",
+                                  "Trend",
                                   style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
                                 ),
                                 // SizedBox(width: 5,),

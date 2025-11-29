@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nornsabai/model/data_model/requestmodel.dart';
+import 'dart:async';
 
 // ==================== Caretaker Friend System ====================
 class CaretakerFriendSystem {
@@ -193,34 +194,106 @@ class CaretakerFriendSystem {
   }
 
   /// ดูรายการที่อยู่ใน incarelist พร้อมข้อมูล user
+  /// This stream will update in real-time when isBreathing changes
   Stream<List<FriendRequestWithUserData>> getIncareListWithUserData(
       String caretakerId) {
-    return _firestore
-        .collection(_caretakerCollection)
-        .doc(caretakerId)
-        .collection(_incarelistSubcollection)
-        .orderBy('requestId', descending: true)
-        .snapshots()
-        .asyncMap((snapshot) async {
-      List<FriendRequestWithUserData> requestsWithData = [];
+    // Create a stream controller to manage the combined stream
+    late StreamController<List<FriendRequestWithUserData>> controller;
+    StreamSubscription? incareSubscription;
+    Map<String, StreamSubscription> userSubscriptions = {};
 
-      for (var doc in snapshot.docs) {
-        final request = FriendRequestModel.fromFirestore(doc.id, doc.data());
+    controller = StreamController<List<FriendRequestWithUserData>>(
+      onListen: () {
+        // Listen to incarelist changes
+        incareSubscription = _firestore
+            .collection(_caretakerCollection)
+            .doc(caretakerId)
+            .collection(_incarelistSubcollection)
+            .orderBy('requestId', descending: true)
+            .snapshots()
+            .listen((incareSnapshot) async {
+          // Cancel old user subscriptions
+          for (var sub in userSubscriptions.values) {
+            await sub.cancel();
+          }
+          userSubscriptions.clear();
 
-        UserData? targetUser;
-        if (request.targetUserId != null) {
-          targetUser = await _getUserData(request.targetUserId!);
+          if (incareSnapshot.docs.isEmpty) {
+            controller.add([]);
+            return;
+          }
+
+          // Get all target user IDs
+          final targetUserIds = incareSnapshot.docs
+              .map((doc) => doc.data()['targetUserId'] as String?)
+              .where((id) => id != null)
+              .cast<String>()
+              .toSet()
+              .toList();
+
+          if (targetUserIds.isEmpty) {
+            List<FriendRequestWithUserData> requestsWithData = [];
+            for (var doc in incareSnapshot.docs) {
+              final request = FriendRequestModel.fromFirestore(doc.id, doc.data());
+              requestsWithData.add(FriendRequestWithUserData(
+                request: request,
+                targetUser: null,
+              ));
+            }
+            controller.add(requestsWithData);
+            return;
+          }
+
+          // Function to fetch and emit current data
+          Future<void> emitCurrentData() async {
+            List<FriendRequestWithUserData> requestsWithData = [];
+
+            for (var doc in incareSnapshot.docs) {
+              final request = FriendRequestModel.fromFirestore(doc.id, doc.data());
+
+              UserData? targetUser;
+              if (request.targetUserId != null) {
+                targetUser = await _getUserData(request.targetUserId!);
+              }
+
+              requestsWithData.add(FriendRequestWithUserData(
+                request: request,
+                targetUser: targetUser,
+              ));
+            }
+
+            print("In care------ ${requestsWithData}");
+            if (!controller.isClosed) {
+              controller.add(requestsWithData);
+            }
+          }
+
+          // Emit initial data
+          await emitCurrentData();
+
+          // Listen to each user document for changes
+          for (var userId in targetUserIds) {
+            userSubscriptions[userId] = _firestore
+                .collection(_generalUserCollection)
+                .doc(userId)
+                .snapshots()
+                .listen((_) async {
+              // When any user document changes, re-emit all data
+              await emitCurrentData();
+            });
+          }
+        });
+      },
+      onCancel: () async {
+        await incareSubscription?.cancel();
+        for (var sub in userSubscriptions.values) {
+          await sub.cancel();
         }
+        userSubscriptions.clear();
+      },
+    );
 
-        requestsWithData.add(FriendRequestWithUserData(
-          request: request,
-          targetUser: targetUser,
-        ));
-      }
-
-      print("In care------ ${requestsWithData}");
-      return requestsWithData;
-    });
+    return controller.stream;
   }
 
   /// ยกเลิกการเป็นเพื่อน
@@ -310,6 +383,7 @@ class CaretakerFriendSystem {
         userId: userId,
         username: data['username'] ?? '',
         email: data['email'] ?? '',
+        isBreathing: data['isBreathing'],
       );
     } catch (e) {
       print('Error getting user data: $e');

@@ -18,15 +18,18 @@ enum BorderRauisType {
   final BorderRadius border;
 }
 
+
+
+
 enum BorderRauishorizonyal {
   left(
-    border: BorderRadius.only(topLeft: Radius.circular(30),bottomLeft: Radius.circular(30)),
+    border: BorderRadius.only(topLeft: Radius.circular(55),bottomLeft: Radius.circular(55)),
   ),
   center(
     border: BorderRadius.zero,
   ),
   right(
-    border: BorderRadius.only(topRight: Radius.circular(30),bottomRight: Radius.circular(30)),
+    border: BorderRadius.only(topRight: Radius.circular(55),bottomRight: Radius.circular(55)),
   );
 
   const BorderRauishorizonyal({required this.border});

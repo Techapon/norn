@@ -1,10 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/Myfunction/globalFunc/dailygraph.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/result/widget_func/calendar.dart';
+
+// form geenral result
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/geneWd/g_result/g_result_widget.dart';
+
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 
 class ResultGaneral extends StatefulWidget {
@@ -100,7 +104,7 @@ class ResultGaneralState extends State<ResultGaneral> {
   // Show Dialog
   final GlobalKey<FormState> _noteFormKey = GlobalKey<FormState>();
   TextEditingController noteField = TextEditingController();
-  void showdiaolog({
+  void dialognote({
     required BuildContext context,
     required String DatabaseNote
   }) {
@@ -115,9 +119,10 @@ class ResultGaneralState extends State<ResultGaneral> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
           ),
-          insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 20),
+          insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 30),
           child: SingleChildScrollView(
             child: Container(
+              // height: 600,
               decoration: BoxDecoration(
                 color: BgColor.Bg1.color_code,
                 borderRadius: BorderRadius.circular(6),
@@ -138,11 +143,11 @@ class ResultGaneralState extends State<ResultGaneral> {
                           bottom: BorderSide(width: 1,color: Colors.black)
                         )
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 15,vertical: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 20,vertical: 15),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text("Title",style:  GoogleFonts.itim(fontSize: 25),),
+                          Text("Title",style:  GoogleFonts.itim(fontSize: 30),),
                         ],
                       ),
                     ),
@@ -152,20 +157,21 @@ class ResultGaneralState extends State<ResultGaneral> {
                       decoration: BoxDecoration(
                         color: BgColor.Bg1.color_code
                       ),
-                      height: 400,
+                      height: 600,
                       child: Padding(
-                        padding: EdgeInsets.all(17.5),
+                        padding: EdgeInsets.all(20),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
             
                             // Field
                             Expanded(
                               child: Container(
-                                // decoration: BoxDecoration(color: Colors.white),
+                                
                                 child: TextFormField(
                                   
                                   controller: noteField,
-
+                              
                                   expands: true,
                                   maxLines: null,
                                   minLines: null,
@@ -173,18 +179,17 @@ class ResultGaneralState extends State<ResultGaneral> {
                                   maxLength: 500,
                                   keyboardType: TextInputType.multiline,
                                   cursorColor: Color(0xFFB2D3E4),
-                                  style: GoogleFonts.itim(fontSize: 20,color: Color.fromARGB(255, 81, 128, 152),fontWeight: FontWeight.w500),
-                                  
+                                  style: GoogleFonts.itim(fontSize: 23,color: Color.fromARGB(255, 81, 128, 152),fontWeight: FontWeight.w500),
                                   
                                   decoration:  InputDecoration(
                                     hintText: "Description...",
-                                    hintStyle: GoogleFonts.itim(fontSize: 20,color: Color.fromARGB(255, 81, 128, 152),fontWeight: FontWeight.w500),
+                                    hintStyle: GoogleFonts.itim(fontSize: 23,color: Color.fromARGB(255, 81, 128, 152),fontWeight: FontWeight.w500),
                                     counterStyle: TextStyle(color: Colors.black,fontSize: 14),
-
+                              
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide.none
                                     ),
-
+                              
                                     focusedBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(color: Colors.black54,width: 1)
                                     )
@@ -193,7 +198,7 @@ class ResultGaneralState extends State<ResultGaneral> {
                               ),
                             ),
             
-                            SizedBox(height: 10,),
+                            SizedBox(height: 20,),
             
                             // on save
                             Row(
@@ -237,7 +242,7 @@ class ResultGaneralState extends State<ResultGaneral> {
                                       },
                                     );
                                   },
-                                  child:  Text("save",style: GoogleFonts.itim(color: Colors.black,fontSize: 18),),
+                                  child:  Text("save",style: GoogleFonts.itim(color: Colors.black,fontSize: 30),),
                                 )
                               ],
                             )
@@ -320,12 +325,12 @@ class ResultGaneralState extends State<ResultGaneral> {
                   children: [
                     Text(
                       "Choose Sleep",
-                      style: GoogleFonts.itim(fontSize: 25,color: headColor[0]),
+                      style: GoogleFonts.itim(fontSize: 35,color: headColor[0]),
                     ),
                     SizedBox(width: 5,),
                     Text(
                       "Sessions",
-                      style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
+                      style: GoogleFonts.itim(fontSize: 35,color: headColor[1]),
                     ),
                     // SizedBox(width: 5,),
                   ],
@@ -344,8 +349,9 @@ class ResultGaneralState extends State<ResultGaneral> {
                   textColor: Colors.grey[600],
                   defaultColor: Colors.grey[360],
                   
+                  fontSize: 17.5,
                   
-                  size: 35,
+                  size: 50,
                   colorMode: ColorMode.opacity,
                   showText: true,
                   scrollable: true,
@@ -393,8 +399,8 @@ class ResultGaneralState extends State<ResultGaneral> {
               ),
 
               Padding(
-                padding: EdgeInsetsGeometry.symmetric(vertical: 15),
-                child: Text("*Select your sleep session you would like to see.",style:  GoogleFonts.itim(color: Colors.black,fontSize: 13),),
+                padding: EdgeInsetsGeometry.symmetric(vertical: 20),
+                child: Text("*Select your sleep session you would like to see.",style:  GoogleFonts.itim(color: Colors.black,fontSize: 20),),
               )
 
               
@@ -430,6 +436,9 @@ class ResultGaneralState extends State<ResultGaneral> {
 
     // ✅ ถ้าไม่มีข้อมูล → แสดง no data
     if (!controller.isLoaded || controller.allDots.isEmpty) {
+      print(" -------1 : ${!controller.isLoaded } ------");
+      print(" -------2 : ${controller.allDots.isEmpty} ------");
+
       return RefreshIndicator(
         onRefresh: _onRefresh,
         child: SingleChildScrollView(
@@ -447,158 +456,174 @@ class ResultGaneralState extends State<ResultGaneral> {
         onRefresh: _onRefresh,
         color: Colors.blue,
         backgroundColor: Colors.white,
-        child:SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                          
-                  // day
-                  Padding(
-                    padding: EdgeInsetsGeometry.symmetric(vertical: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "${_dateToday?[0]}",
-                          style: GoogleFonts.itim(fontSize: 25,color: headColor[0]),
-                        ),
-                        SizedBox(width: 5,),
-                        Text(
-                          "${_dateToday?[1]}",
-                          style: GoogleFonts.itim(fontSize: 25,color: headColor[1]),
-                        ),
-                        // SizedBox(width: 5,),
-                        IconButton(
-                          onPressed: () async{
-                            showCalendar();
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              // day
+              Padding(
+                padding: EdgeInsetsGeometry.symmetric(vertical: 30),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "${_dateToday?[0]}",
+                      style: GoogleFonts.itim(fontSize: 45,color: headColor[0]),
+                    ),
+                    SizedBox(width: 5,),
+                    Text(
+                      "${_dateToday?[1]}",
+                      style: GoogleFonts.itim(fontSize: 45,color: headColor[1]),
+                    ),
+                    // SizedBox(width: 5,),
+                    IconButton(
+                      onPressed: () async{
+                        showCalendar();
+                        
+                      },
+                      icon: Icon(Icons.date_range_outlined,color: Colors.black,size: 50,)
+                    )
+                  ],
+                ),
+              ),
+                      
+              SizedBox(height: 15,),
+                      
+              // line charts
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                child: buildGraphWidget(
+                  context: context,
+                  dots: controller.allDots,
+                  sessionData: controller.sessionData ?? {},
+                  docId:  widget.userDocId
+                ),
+              ),
+              
+             
+                      
+              SizedBox(height: 15,),
+                      
+              Padding(
+                padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
+                child: buildGategoryBar(category: _categortList!)
+              ),
+                      
+              // bottom part
+              Padding(
+                padding: const EdgeInsets.only(left: 45,right: 45,top: 40),
+                child: Container(
+                  // height: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      
+                      // Time brabrabra
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.30,
+                        child: SingleChildScrollView(
+                          child: Column(
                             
-                          },
-                          icon: Icon(Icons.date_range_outlined,color: Colors.black,size: 27.5,)
-                        )
-                      ],
-                    ),
-                  ),
-                          
-                  SizedBox(height: 15,),
-                          
-                  // line charts
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
-                    child: buildGraphWidget(
-                      context: context,
-                      dots: controller.allDots,
-                      sessionData: controller.sessionData ?? {},
-                      docId:  widget.userDocId
-                    ),
-                  ),
-                  
-                 
-                          
-                  SizedBox(height: 15,),
-                          
-                  Padding(
-                    padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
-                    child: buildGategoryBar(category: _categortList!)
-                  ),
-                          
-                  // bottom part
-                  Padding(
-                    padding: const EdgeInsets.only(left: 17.5,right: 17.5,top: 25),
-                    child: Container(
-                      height: 235,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-
-                          // Time brabrabra
-                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               buildStartEnd(
                                 startend: _startend ?? {},
                                 icon: Icons.timelapse_rounded
                               ),
+                              SizedBox(height: 20,),
                               buildSleepTime(
                                 sleeptime: _sleeptime ?? '',
                                 icon: Icons.bed_rounded
                               ),
+                              SizedBox(height: 20,),
                               buildSoreDetial(
                                 snoredetial: _snoredetial!,
                                 icon: Icons.record_voice_over_sharp
                               ),
+                              // SizedBox(height: 12,),
+                              // buildSoreDetial(
+                              //   snoredetial: _snoredetial!,
+                              //   icon: Icons.record_voice_over_sharp
+                              // ),
                               
                             ],
                           ),
-
-                          // pie graph & note
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-
-                              // pie charts
-                              Container(
-                                height: 160,
-                                width: 140,
-                                // padding: ,
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[200],
-                                  borderRadius: BorderRadius.circular(2),
-                                 
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    buildPiechart(category: _categortList!),
-                                    SizedBox(height:5,),
-                                    Text("Summaarize",style:  GoogleFonts.itim(fontSize: 17.5,color: Colors.white),)
-                                  ],
-                                )
+                        ),
+                      ),
+                    
+                      // pie graph & note
+                      Container(
+                        // color: Colors.white,
+                        padding: EdgeInsets.only(right: 25,),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                                            
+                            // pie charts
+                            Container(
+                              height: 250,
+                              width: 250,
+                              // padding: ,
+                              decoration: BoxDecoration(
+                                color: Colors.blue[200],
+                                borderRadius: BorderRadius.circular(6),
+                               
                               ),
-
-                              // add note
-                              Row(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue[200],
-                                      foregroundColor: Colors.white,
-                                      shape: CircleBorder(),
-                                      padding: EdgeInsets.all(13),
-                                      iconColor: Colors.black,
-                                      iconSize: 32,
-                                    ),
-                                    
-                                    onPressed: (){
-                                      showdiaolog(
-                                        context: context,
-                                        DatabaseNote: _note ?? "Not can't load",
-                                      );
-                                    },
-                                    child: Icon(Icons.add)
-                                  ),
-                                  SizedBox(width: 7.5),
-                                  Text("Add note",style: GoogleFonts.itim(fontSize: 15,color:  Colors.blue, fontWeight: FontWeight.w500),)
-
+                                  buildPiechart(category: _categortList!),
+                                  SizedBox(height:10,),
+                                  Text("Summaarize",style:  GoogleFonts.itim(fontSize: 17.5,color: Colors.white),)
                                 ],
                               )
-
-
-                              
-                            ],
-                          )
-                        ],
-                        
-                      ),
-                    ),
-                  )
-                  
-                  
-                ],
-              ),
-            )
+                            ),
+                            SizedBox(height: 30,),               
+                            // add note
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue[200],
+                                    foregroundColor: Colors.white,
+                                    shape: CircleBorder(),
+                                    padding: EdgeInsets.all(25),
+                                    iconColor: Colors.black,
+                                    iconSize: 50,
+                                  ),
+                                  
+                                  onPressed: (){
+                                    dialognote(
+                                      context: context,
+                                      DatabaseNote: _note ?? "Not can't load",
+                                    );
+                                  },
+                                  child: Icon(Icons.add)
+                                ),
+                                SizedBox(width: 7.5),
+                                Text("Add note",style: GoogleFonts.itim(fontSize: 23,color:  Colors.blue, fontWeight: FontWeight.w500),)
+                                            
+                              ],
+                            ),
+                                            
+                             SizedBox(height: 27,),                     
+                            
+                          ],
+                        ),
+                      )
+                    ],
+                    
+                  ),
+                ),
+              )
+              
+              
+            ],
+          ),
+        )
         ),
       );
   }

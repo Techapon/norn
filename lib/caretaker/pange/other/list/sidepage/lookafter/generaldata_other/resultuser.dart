@@ -7,7 +7,10 @@ import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/Myfunction/globalFunc/dailygraph.dart';
-import 'package:nornsabai/genaraluser/pange/otherpage/result/widget_func/calendar.dart';
+
+// form care result
+import 'package:nornsabai/Myfunction/globalFunc/getsessiondt/careWd/c_result/c_result_widget.dart';
+
 import 'package:nornsabai/model/data_model/requestmodel.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 

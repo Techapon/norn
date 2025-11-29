@@ -599,13 +599,14 @@ class SleepAnalysisService {
 
   // สร้าง BarChartRodData ตาม DataType
   List<BarChartRodData> _createRodData(SleepSession session, DataType dataType) {
+    double barwidth = 25;
     switch (dataType) {
       case DataType.snoreScore:
         return [
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.snoreScoreMinutes,
-            width: 20,
+            width: barwidth,
             rodStackItems: [
               BarChartRodStackItem(
                 0,
@@ -626,7 +627,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.snorePercent,
-            width: 20,
+            width: barwidth,
             rodStackItems: [
               BarChartRodStackItem(
                 0,
@@ -648,7 +649,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.loudPercent,
-            width: 20,
+            width: barwidth,
             color: ColorHelper.loud,
           ),
         ];
@@ -658,7 +659,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.veryLoudPercent,
-            width: 20,
+            width: barwidth,
             color: ColorHelper.veryLoud,
           ),
         ];
@@ -668,7 +669,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.apneaMinutes,
-            width: 20,
+            width: barwidth,
             color: ColorHelper.apnea,
           ),
         ];
@@ -678,7 +679,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.undetectedPercent,
-            width: 20,
+            width: barwidth,
             color: ColorHelper.apnea,
           ),
         ];
@@ -688,7 +689,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.quietMinutes,
-            width: 20,
+            width: barwidth,
             color: ColorHelper.quiet,
           ),
         ];
@@ -698,7 +699,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.quietPercent,
-            width: 20,
+            width: barwidth,
             color: ColorHelper.quiet,
           ),
         ];
@@ -708,7 +709,7 @@ class SleepAnalysisService {
           BarChartRodData(
             borderRadius: BorderRadius.zero,
             toY: session.sleepTimeMinutes,
-            width: 20,
+            width: barwidth,
             color: Colors.blueGrey,
           ),
         ];

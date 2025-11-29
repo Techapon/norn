@@ -2,19 +2,27 @@ import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:nornsabai/Myfunction/My_findaccount.dart';
+import 'package:nornsabai/genaraluser/pange/discover_general.dart';
+import 'package:nornsabai/genaraluser/pange/otherpage/record/func/latestsession.dart';
 import 'package:nornsabai/genaraluser/pange/profile_ganeral.dart';
 import 'package:nornsabai/genaraluser/pange/record_general.dart';
 import 'package:nornsabai/genaraluser/pange/result_ganeral.dart';
 import 'package:nornsabai/genaraluser/pange/trend_general.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
+import 'package:nornsabai/Myfunction/globalFunc/alarmsystem/function/alarm_func.dart';
 
+
+// update
+late UserStatusService updatebreath;
 
 class GeneralMainPage extends StatefulWidget {
   const GeneralMainPage({super.key});
-
+  
   @override
   State<GeneralMainPage> createState() => _GeneralMainPageState();
 }
+
+
 
 class _GeneralMainPageState extends State<GeneralMainPage> {
   int _currentIndex = 0; 
@@ -22,6 +30,7 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
   Color navbarcolor = BgColor.BottomNav_bg.color_code;
 
   String? myDocId;
+  LatestSessionData? latestSessionData;
 
   bool isLoading = true;
 
@@ -30,6 +39,15 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
   @override
   void initState() {
     super.initState();
+
+    pages = [
+      RecordGeneral(latestSessionData: null, setcurrent: null),
+      Center(child: CircularProgressIndicator()),
+      Center(child: CircularProgressIndicator()),
+      Center(child: CircularProgressIndicator()),
+      Center(child: CircularProgressIndicator()),
+    ];
+
     loadMyDocId();
   }
 
@@ -38,16 +56,21 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
 
     String? docId = await getUserDocIdByEmail("General user",myEmail);
 
+    // ตั้งค่า updatebreath
+    updatebreath = UserStatusService(docId: docId!);
+
+    latestSessionData = await getLatestSessionByUserId(docId!);
+    
     if (!mounted) return;
     setState(() {
       myDocId = docId;
       isLoading = false;
 
       pages = [
-        RecordGeneral(),
-        ResultGaneral(userDocId: myDocId!),   // ได้ค่า docID ที่ถูกต้อง
+        RecordGeneral(latestSessionData: latestSessionData,setcurrent: (id) { setcurrent(id); } ),
+        ResultGaneral(userDocId: myDocId!),   
         TrendGaneral(userDocId: myDocId!,),
-        Center(child: Text('search Page')),
+        DiscoverGeneral(),
         ProfileGeneral(userDocId: myDocId!)
       ];
 
@@ -56,12 +79,18 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
 
   List<Widget> getPages() {
     return [
-      RecordGeneral(),
-      ResultGaneral(userDocId: myDocId!),   // ได้ค่า docID ที่ถูกต้อง
+      RecordGeneral(latestSessionData: latestSessionData,setcurrent: (id) { setcurrent(id); } ),
+      ResultGaneral(userDocId: myDocId!),  
       TrendGaneral(userDocId: myDocId!,),
-      Center(child: Text('search Page')),
+      DiscoverGeneral(),
       ProfileGeneral(userDocId: myDocId!)
     ];
+  }
+
+  void setcurrent(int id) {
+    setState(() {
+      _currentIndex = id;
+    });
   }
 
   @override
@@ -81,8 +110,8 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
       bottomNavigationBar: CircleNavBar(
         activeIndex: _currentIndex,
         color: navbarcolor,
-        circleWidth: 60,
-        height: 90,
+        circleWidth: 80,
+        height: 130,
 
         onTap: (index) {
           setState(() {
@@ -96,27 +125,27 @@ class _GeneralMainPageState extends State<GeneralMainPage> {
         },
         
         activeIcons: [
-          Icon(Icons.mic, color: Colors.white, size: 37.5),
-          Icon(Icons.play_arrow_outlined, color: Colors.white, size: 37.5),
-          Icon(Icons.bar_chart, color: Colors.white, size: 37.5),
-          Icon(Icons.search_outlined, color: Colors.white, size: 37.5),
-          Icon(Icons.account_circle, color: Colors.white, size: 37.5),
+          Icon(Icons.mic, color: Colors.white, size: 45),
+          Icon(Icons.play_arrow_outlined, color: Colors.white, size: 45),
+          Icon(Icons.bar_chart, color: Colors.white, size: 45),
+          Icon(Icons.search_outlined, color: Colors.white, size: 45),
+          Icon(Icons.account_circle, color: Colors.white, size: 45),
         ],
         
         inactiveIcons: [
-          Icon(Icons.mic, color: Colors.white.withOpacity(0.26), size: 37.5),
-          Icon(Icons.play_arrow_outlined, color: Colors.white.withOpacity(0.26), size: 37.5),
-          Icon(Icons.bar_chart, color: Colors.white.withOpacity(0.26), size: 37.5),
-          Icon(Icons.search_outlined, color: Colors.white.withOpacity(0.26), size: 37.5),
-          Icon(Icons.account_circle, color: Colors.white.withOpacity(0.26), size: 37.5),
+          Icon(Icons.mic, color: Colors.white.withOpacity(0.26), size: 50),
+          Icon(Icons.play_arrow_outlined, color: Colors.white.withOpacity(0.26), size: 50),
+          Icon(Icons.bar_chart, color: Colors.white.withOpacity(0.26), size: 50),
+          Icon(Icons.search_outlined, color: Colors.white.withOpacity(0.26), size: 50),
+          Icon(Icons.account_circle, color: Colors.white.withOpacity(0.26), size: 50),
         ],
 
         levels: ["Record", "Result", "Trend", "Discover", "Profile"],
         activeLevelsStyle: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
-          fontSize: 12,
-          height: 4.5
+          fontSize: 20,
+          height: 4.0
         ),
 
         inactiveLevelsStyle: TextStyle(

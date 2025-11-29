@@ -71,28 +71,36 @@ class ProfileGeneral extends StatelessWidget {
                   if (snapshot.connectionState ==  ConnectionState.waiting) {
                     return buildprofile(
                       name: "Loading...",
-                      email: ". . . ."
+                      email: ". . . .",
+                      iconSize: 60,
+                      titleSize: 23,
                     );
                   }
 
                   if (snapshot.hasError) {
                     return buildprofile(
                       name: "Error Loading",
-                      email: "Please try again"
+                      email: "Please try again",
+                      iconSize: 60,
+                      titleSize: 23,
                     );
                   }
 
                   if (!snapshot.hasData || snapshot.data == null) {
                     return buildprofile(
                       name: "No Profile Found",
-                      email: "User data not available"
+                      email: "User data not available",
+                      iconSize: 60,
+                      titleSize: 23,
                     );
                   }
 
                   final userData = snapshot.data!;
                   return buildprofile(
                     name: userData["username"],
-                    email: userData["email"]
+                    email: userData["email"],
+                    iconSize: 60,
+                    titleSize: 23,
                   );
                 }
               ),
@@ -105,9 +113,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Colors.transparent,
                 title: "Account",
                 bold: true,
-                bg: true,
+                bgnone: true,
                 borderType: BorderRauisType.single,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               Padding(
@@ -115,7 +125,7 @@ class ProfileGeneral extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Caretaker",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
+                    Text("Caretaker",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 17),),
                   ],
                 ),
               ),
@@ -126,11 +136,13 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color.fromARGB(255, 67, 186, 255),
                 title: "Caretaker",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.top,
                 onclick: (){
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => Caretaker(userdocid: userDocId,)));
-                }
+                },
+                iconSize: 35,
+                titleSize: 17,
               ),
               
               // Request
@@ -139,11 +151,13 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color.fromARGB(255, 255, 139, 67),
                 title: "Request",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.bottom,
                 onclick: (){
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => Request(userdocid: userDocId,)));
-                }
+                },
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               Padding(
@@ -151,7 +165,7 @@ class ProfileGeneral extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("App Setting",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
+                    Text("App Setting",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 17),),
                   ],
                 ),
               ),
@@ -162,9 +176,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFF6CC7E0),
                 title: "Sound setting",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.top,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               // Notifications
@@ -173,9 +189,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFFFF4C00),
                 title: "Notifications",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.center,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               // Audio file capacity
@@ -184,9 +202,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFFEDDC81),
                 title: "Audio file capacity",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.bottom,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               Padding(
@@ -194,7 +214,7 @@ class ProfileGeneral extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Sleep Quality",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
+                    Text("Sleep Quality",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 17),),
                   ],
                 ),
               ),
@@ -205,9 +225,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFF6CC7E0),
                 title: "Health",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.top,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               // Sleep apnea risk assessment
@@ -216,9 +238,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFF8B56C3),
                 title: "Sleep apnea risk assessment",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.center,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               // A tailored solution for you
@@ -227,9 +251,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFF5DC764),
                 title: "A tailored solution for you",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.bottom,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
 
@@ -238,7 +264,7 @@ class ProfileGeneral extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text("Help & Recommend",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 13),),
+                    Text("Help & Recommend",style: TextStyle(color: Color(0xFF8C8C8C),fontSize: 17),),
                   ],
                 ),
               ),
@@ -249,9 +275,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFFFF7BA9),
                 title: "Frequently asked questions",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.top,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               // Send feedback
@@ -260,9 +288,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFF3880EB),
                 title: "Send feedback",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.center,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,  
               ),
 
               //Export data
@@ -271,9 +301,11 @@ class ProfileGeneral extends StatelessWidget {
                 iconcolor: Color(0xFF818181),
                 title: "Export data",
                 bold: false,
-                bg: false,
+                bgnone: false,
                 borderType: BorderRauisType.bottom,
-                onclick: (){}
+                onclick: (){},
+                iconSize: 35,
+                titleSize: 17,
               ),
 
               SizedBox(height: 50,),
@@ -302,7 +334,7 @@ class ProfileGeneral extends StatelessWidget {
                     }, 
                   );
                 },
-                child: Text("Log out",style: GoogleFonts.itim(color: Colors.white,fontSize: 22,fontWeight: FontWeight.w500),)
+                child: Text("Log out",style: GoogleFonts.itim(color: Colors.white,fontSize: 26,fontWeight: FontWeight.w500),)
                 ),
 
                 SizedBox(height: 20,),
