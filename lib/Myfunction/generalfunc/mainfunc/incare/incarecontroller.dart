@@ -220,6 +220,26 @@ class GeneralUserFriendSystem {
     });
   }
 
+  /// จำนวน request ที่ยังไม่ตัดสินใจ
+  Stream<int> getPendingRequestCount(String generalUserId) {
+    return _firestore
+        .collection(_generalUserCollection)
+        .doc(generalUserId)
+        .collection(_requestsSubcollection)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  /// จำนวน caretaker ของตน
+  Stream<int> getCaretakerCount(String generalUserId) {
+    return _firestore
+        .collection(_generalUserCollection)
+        .doc(generalUserId)
+        .collection(_caretakerlistSubcollection)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
   /// ยกเลิกการเป็นเพื่อน
   Future<Map<String, dynamic>> removeFriend({
     required String generalUserId,

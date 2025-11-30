@@ -28,7 +28,7 @@ void MyDiaologAlertFuture({
           final mediascreen = MediaQuery.of(context).size.width;
           
           double maintextscale = mediascreen / 18;
-          double desscripscale = maintextscale * 0.8;
+          double desscripscale = maintextscale * 0.75;
 
           double insetpadding = maintextscale  * 3.0;
           double alrtpadding = maintextscale  * 0.9;
