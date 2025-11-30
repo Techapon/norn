@@ -214,7 +214,10 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                 
                       SizedBox(height: 15,),
                       // Selected Bar Details
-                      _buildBarDetailsWrapper(controller),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: _buildBarDetailsWrapper(controller)
+                      ),
                         // _buildBarDetails(controller.selectedMetrics!),
                   
                       SizedBox(height: 20),

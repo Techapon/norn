@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
+import 'package:nornsabai/Myfunction/globalFunc/alarmsystem/function/alarm_func.dart';
 
 class DiscoverGeneral extends StatelessWidget {
   const DiscoverGeneral({super.key});
