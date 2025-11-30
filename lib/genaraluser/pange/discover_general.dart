@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
+import 'package:nornsabai/genaraluser/pange/otherpage/discover/page/disfull.dart';
+import 'package:nornsabai/model/data_model/discovermodel.dart';
 import 'package:nornsabai/model/reuse_model/color_model.dart';
 import 'package:nornsabai/Myfunction/globalFunc/alarmsystem/function/alarm_func.dart';
 
@@ -33,7 +35,7 @@ class DiscoverGeneral extends StatelessWidget {
         
             Expanded(
               child: ListView.builder(
-                itemCount: 2,
+                itemCount: discoverList.length,
                 itemBuilder: (context, index) {
 
                   Color maintextcolor  = BgColor.BottomNav_bg.color_code;
@@ -57,10 +59,10 @@ class DiscoverGeneral extends StatelessWidget {
                           child: Container(
                             padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Color(0xFF002844),
+                              color: discoverList[index].colortheme,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.nightlight_rounded,color: Colors.white,size: 28,),
+                            child: Icon( discoverList[index].icon ,color: Colors.white,size: 28,),
                           )
                         ),
 
@@ -69,15 +71,18 @@ class DiscoverGeneral extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "in science base"
-                              ,style: TextStyle(color: Color(0xFF003F6D),fontSize: 25,fontWeight: FontWeight.bold),
+                              "${discoverList[index].section}",
+                              style: TextStyle(color: discoverList[index].colortheme,fontSize: 25,fontWeight: FontWeight.bold),
                             ),
 
-                            Row(
-                              children: [
-                                Text("- ",style:  TextStyle(color: Color(0xFF003F6D),fontSize: 40,fontWeight: FontWeight.bold)),
-                                Text("What is snore?",style:  TextStyle(color: maintextcolor,fontSize: 40,fontWeight: FontWeight.bold))
-                              ],
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  Text("- ",style:  TextStyle(color: discoverList[index].colortheme,fontSize: 35,fontWeight: FontWeight.bold)),
+                                  Text("${discoverList[index].title}",style:  TextStyle(color: maintextcolor,fontSize: 35,fontWeight: FontWeight.bold))
+                                ],
+                              ),
                             ),
 
                             Container(
@@ -90,22 +95,45 @@ class DiscoverGeneral extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12)
                               ),
                               child: Image.asset(
-                                "image/discover1.jpg",
+                                discoverList[index].image,
                                 fit: BoxFit.cover,
                               ),
                             ),
 
                             // turn to text span
                             Text(
-                              "Snoring is the hoarse or harsh sound that occurs when air flows past relaxed tissues in your throat, causing the tissues to vibrate as you breathe. Nearly everyone snores now and then, but for some people it can be a chronic problem. Sometimes it may also indicate a serious health condition. In addition, snoring can be a nuisance to your partner.Lifestyle changes, such as losing weight, avoiding alcohol close to bedtime or sleeping on your side, can help stop snoring.In addition, medical devices and surgery are available that may reduce disruptive snoring. However, these aren't suitable or necessary for everyone who snores.",
-                              style: TextStyle(color: Color(0xFF003F6D),fontSize: 30,fontWeight: FontWeight.w100),
+                              "${discoverList[index].textcontent}",
+                              style: TextStyle(color: Color(0xFF003F6D),fontSize: 27,fontWeight: FontWeight.w100),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 5,
                             ),
 
 
+                            // read more
 
-            
+                            SizedBox(height: 10,),
+
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero
+                              ),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return Disfull(discoverModel: discoverList[index],);
+                                  }
+                                );
+                              },
+                              child: Text("read more",style: TextStyle(
+                                color: Color(0xFF003F6D),
+                                fontSize: 27,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Color(0xFF003F6D),
+                                decorationThickness: 1.5,
+                              ),)
+                            )
 
                           ],
                         )

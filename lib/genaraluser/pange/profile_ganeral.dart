@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 // import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/My_widget/My_settingElement.dart';
@@ -48,6 +49,19 @@ class ProfileGeneral extends StatelessWidget {
 
   @override  
   Widget build(BuildContext context) {
+
+    void comming() {
+      Fluttertoast.showToast(
+        msg: "comming soon",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: BgColor.Bg1.color_code,
+        textColor: Colors.black,
+        fontSize: 16.0,
+        
+      );
+    }
     return Container(
       height: double.infinity,
       width: double.infinity,
@@ -108,12 +122,6 @@ class ProfileGeneral extends StatelessWidget {
 
               SizedBox(height: 20,),
 
-              FilledButton(onPressed: ()async{
-                  UserStatusService test = UserStatusService(docId: userDocId);
-                  test.updateBreathingF();
-              }, child: Text("test call")),
-
-
               // account
               settingElement(
                 icon: Icons.account_circle,
@@ -122,7 +130,9 @@ class ProfileGeneral extends StatelessWidget {
                 bold: true,
                 bgnone: true,
                 borderType: BorderRauisType.single,
-                onclick: (){},
+                onclick: (){
+                  comming();
+                },
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -185,7 +195,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.top,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -198,7 +208,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.center,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -211,7 +221,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.bottom,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -234,7 +244,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.top,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -247,7 +257,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.center,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -260,7 +270,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.bottom,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -284,7 +294,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.top,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),
@@ -297,7 +307,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.center,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,  
               ),
@@ -310,7 +320,7 @@ class ProfileGeneral extends StatelessWidget {
                 bold: false,
                 bgnone: false,
                 borderType: BorderRauisType.bottom,
-                onclick: (){},
+                onclick: (){comming();},
                 iconSize: 35,
                 titleSize: 17,
               ),

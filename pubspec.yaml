@@ -41,6 +41,7 @@ dependencies:
 
   # toast
   toastification: ^3.0.3
+  fluttertoast: ^9.0.0
 
   # database
   cloud_firestore: ^6.0.3
@@ -118,7 +119,9 @@ flutter:
   assets:
     - image/nornsabai_logo.png
     - image/recordingBg.jpg
-    - image/discover1.jpg
+    - image/dis1.jpg
+    - image/dis2.jpg
+    - image/dis3.jpg
     - assets/soundassets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
