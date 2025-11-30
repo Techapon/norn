@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:core';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
@@ -81,7 +82,7 @@ class _RecordGeneralState extends State<RecordGeneral> {
 
 
           Padding(
-            padding: EdgeInsetsGeometry.symmetric(horizontal: 30),
+            padding: EdgeInsets.symmetric(horizontal: 30),
             child: Column(
               children: [
                 // row

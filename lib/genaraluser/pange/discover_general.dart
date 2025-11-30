@@ -21,7 +21,7 @@ class DiscoverGeneral extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 30),
                   child: Row(
                     children: [
-                      Text("Discover",style: TextStyle  (color: BgColor.BottomNav_bg.color_code ,fontSize: 45,fontWeight: FontWeight.bold),),
+                      Text("Discover",style: TextStyle(color: BgColor.BottomNav_bg.color_code ,fontSize: 45,fontWeight: FontWeight.bold),),
                       SizedBox(width: 10,),
                       Icon(Icons.search_rounded,color: Colors.black,size: 50,)
                     ],
@@ -32,12 +32,13 @@ class DiscoverGeneral extends StatelessWidget {
         
             Expanded(
               child: ListView.builder(
-                itemCount: 1,
+                itemCount: 2,
                 itemBuilder: (context, index) {
 
                   Color maintextcolor  = BgColor.BottomNav_bg.color_code;
 
                   return Container(
+                    margin: EdgeInsets.symmetric(vertical: 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),

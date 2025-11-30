@@ -9,23 +9,15 @@ import 'package:nornsabai/genaraluser/general_main.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/record/uploadingses.dart';
 import 'package:nornsabai/model/data_model/shortVoiceModel.dart';
 
-<<<<<<< HEAD
 int totoalseconds = 0;
 int id = 0;
 Function? onSaveSuccess;
 
-=======
-int id = 0;
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 class Runtime {
   late Timer timer; 
   bool isRunning = false;
 
   // id
-<<<<<<< HEAD
-=======
-  
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 
   late DateTime now;
 
@@ -97,17 +89,13 @@ class Runtime {
         print("Endddd voice ${id}");
 
         AiAnalyzeSound(shortvoice);
-<<<<<<< HEAD
 
         totoalseconds = 0;
         id = 0;
-        
+          
         timer.cancel();
         ontick();
 
-=======
-    
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
       }
     });
   }
@@ -115,18 +103,6 @@ class Runtime {
   // Stop function
   void stopTimer(void Function() ontick) {
     if (!isRunning) return;
-<<<<<<< HEAD
-=======
-    uploading = true;
-
-    // update breath status
-    updatebreath.updateBreathingNll();
-
-    totoalseconds = 0;
-    
-    alerted = false;
-
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
     isRunning = false;
 
   }
