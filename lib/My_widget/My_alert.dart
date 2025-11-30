@@ -371,7 +371,7 @@ void MyDiaologNoasktFuture({
                   ),
                   child: isloading
                     ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -391,7 +391,7 @@ void MyDiaologNoasktFuture({
                     )
                     : successed
                     ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -406,7 +406,7 @@ void MyDiaologNoasktFuture({
                       ),
                     )
                     : Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -470,7 +470,7 @@ void MyDiaologAlertLoad({
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(4),
           ),
-          insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
+          insetPadding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
           child: SingleChildScrollView(
             child: Container(
               decoration: BoxDecoration(
@@ -549,7 +549,7 @@ void MyDiaologAlertSuccess({
             child: Column(
                 children: [
                   Padding(
-                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -605,7 +605,7 @@ void MyDiaologAlertFail({
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderraduis),
         ),
-        insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
+        insetPadding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
         child: SingleChildScrollView(
           child: Container(
             decoration: BoxDecoration(

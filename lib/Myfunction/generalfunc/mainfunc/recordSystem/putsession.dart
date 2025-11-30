@@ -1,19 +1,11 @@
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/checkapnea.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/recording.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/storevoice.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/limulator/machine.dart';
-<<<<<<< HEAD
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/recordSystem/recording.dart';
-=======
 import 'package:nornsabai/genaraluser/pange/otherpage/record/uploadingses.dart';
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 
 /// ฟังก์ชั่นเพิ่มข้อมูล sleep session ลงฐานข้อมูล
 /// โดยใช้ Batch เพื่อประสิทธิภาพสูง
@@ -150,18 +142,11 @@ Future<bool> addSleepSessionData({
     lastProcessedId = 0;
 
     consecutiveApneaSeconds = 0;
-<<<<<<< HEAD
     alerted = false;
 
     ListofshortVoice = [];
     ListApneabirth = [];
     ListApneasesion = [];
-=======
-
-    ListofshortVoice.clear();
-    ListApneabirth.clear();
-    ListApneasesion.clear();
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
     apnealistId = 0;
 
     Map<String,dynamic> sessionTemStore = createSession();

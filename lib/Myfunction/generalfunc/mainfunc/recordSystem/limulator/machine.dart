@@ -6,11 +6,8 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 
 final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
-<<<<<<< HEAD
 
-=======
 final List<Uint8List> buffer = [];
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 
 Future<void> recordVoiceMachince(
   bool Function() timeRunning,

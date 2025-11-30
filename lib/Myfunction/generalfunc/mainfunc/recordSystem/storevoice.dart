@@ -48,18 +48,6 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
     print("End at : ${shortVoice.id} \n ${shortVoice.shortValue} \n ${shortVoice.aianalyzereault} \n ${shortVoice.ended}");
 
     // add apnea session path
-<<<<<<< HEAD
-    // if (sessionTemStore["apneasessionpath"] != null) {
-    //   int countapneasession = 0;
-    //   for (var apneasessionItem in sessionTemStore["apneasessionpath"]) {
-    //     countapneasession++;
-
-    //     sessionTemStore["apneasessionpath"]["apneasesion${countapneasession}"] = apneasessionItem;
-
-    //     print("Apnea session path$countapneasession : ${apneasessionItem.filePath}");
-    //   }
-    // }
-=======
     int countapneasession = 0;
     if (sessionTemStore["apneasessionpath"] != null) {
       sessionTemStore["apneasessionpath"].forEach((key, apneasessionItem) {
@@ -67,7 +55,6 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
         print("Apnea session path$countapneasession : ${apneasessionItem['path']}");
       });
     }
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
 
     // -------------------------------------
 
@@ -169,11 +156,7 @@ Map<String,dynamic> createSession() {
     "lound": null,
     "verylound": null,
     "note": "",
-<<<<<<< HEAD
     "apneasessionpath": <String, dynamic> {},
-=======
-    "apneasessionpath": <String, dynamic>{},
->>>>>>> 2461ab2 (discover 1 + large ui -- v1)
     "sleepdetail": <String, dynamic>{
       "remainer": <List<double>>[] 
     }
