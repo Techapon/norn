@@ -429,7 +429,8 @@ class ResultuserState extends State<Resultuser> {
                       padding: EdgeInsetsGeometry.symmetric(horizontal: 10),
                       child: buildGategoryBar(category: _categortList!)
                     ),
-                            
+
+                    // 30/11/2568
                     // bottom part
                     Padding(
                       padding: const EdgeInsets.only(top: 25),
@@ -462,7 +463,7 @@ class ResultuserState extends State<Resultuser> {
                                 ],
                               ),
                               
-                              SizedBox(width: 5,),
+                              SizedBox(width: 5),
                                 
                               // pie graph & note
                               Column(
