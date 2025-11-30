@@ -431,93 +431,96 @@ class ResultuserState extends State<Resultuser> {
                     ),
                             
                     // bottom part
-                    Padding(
-                      padding: const EdgeInsets.only(left: 17.5,right: 17.5,top: 25),
-                      child: Container(
-                        height: 235,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-      
-                            // Time brabrabra
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                buildStartEnd(
-                                  startend: _startend ?? {},
-                                  icon: Icons.timelapse_rounded
-                                ),
-                                buildSleepTime(
-                                  sleeptime: _sleeptime ?? '',
-                                  icon: Icons.bed_rounded
-                                ),
-                                buildSoreDetial(
-                                  snoredetial: _snoredetial!,
-                                  icon: Icons.record_voice_over_sharp
-                                ),
-                                
-                              ],
-                            ),
-      
-                            // pie graph & note
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-      
-                                // pie charts
-                                Container(
-                                  height: 160,
-                                  width: 140,
-                                  // padding: ,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue[200],
-                                    borderRadius: BorderRadius.circular(2),
-                                   
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 17.5,right: 17.5,top: 25),
+                        child: Container(
+                          height: 235,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                            
+                              // Time brabrabra
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  buildStartEnd(
+                                    startend: _startend ?? {},
+                                    icon: Icons.timelapse_rounded
                                   ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  buildSleepTime(
+                                    sleeptime: _sleeptime ?? '',
+                                    icon: Icons.bed_rounded
+                                  ),
+                                  buildSoreDetial(
+                                    snoredetial: _snoredetial!,
+                                    icon: Icons.record_voice_over_sharp
+                                  ),
+                                  
+                                ],
+                              ),
+                            
+                              // pie graph & note
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                            
+                                  // pie charts
+                                  Container(
+                                    height: 160,
+                                    width: 140,
+                                    // padding: ,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[200],
+                                      borderRadius: BorderRadius.circular(2),
+                                     
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        buildPiechart(category: _categortList!),
+                                        SizedBox(height:5,),
+                                        Text("Summaarize",style:  GoogleFonts.itim(fontSize: 17.5,color: Colors.white),)
+                                      ],
+                                    )
+                                  ),
+                            
+                                  // add note
+                                  Row(
                                     children: [
-                                      buildPiechart(category: _categortList!),
-                                      SizedBox(height:5,),
-                                      Text("Summaarize",style:  GoogleFonts.itim(fontSize: 17.5,color: Colors.white),)
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.blue[200],
+                                          foregroundColor: Colors.white,
+                                          shape: CircleBorder(),
+                                          padding: EdgeInsets.all(13),
+                                          iconColor: Colors.black,
+                                          iconSize: 32,
+                                        ),
+                                        
+                                        onPressed: (){
+                                          notedialog(
+                                            context: context,
+                                            DatabaseNote: _note ?? "Not can't load",
+                                          );
+                                        },
+                                        child: Icon(Icons.list_alt_rounded)
+                                      ),
+                                      SizedBox(width: 7.5),
+                                      Text("See note",style: GoogleFonts.itim(fontSize: 15,color:  Colors.blue, fontWeight: FontWeight.w500),)
+                            
                                     ],
                                   )
-                                ),
-      
-                                // add note
-                                Row(
-                                  children: [
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue[200],
-                                        foregroundColor: Colors.white,
-                                        shape: CircleBorder(),
-                                        padding: EdgeInsets.all(13),
-                                        iconColor: Colors.black,
-                                        iconSize: 32,
-                                      ),
-                                      
-                                      onPressed: (){
-                                        notedialog(
-                                          context: context,
-                                          DatabaseNote: _note ?? "Not can't load",
-                                        );
-                                      },
-                                      child: Icon(Icons.list_alt_rounded)
-                                    ),
-                                    SizedBox(width: 7.5),
-                                    Text("See note",style: GoogleFonts.itim(fontSize: 15,color:  Colors.blue, fontWeight: FontWeight.w500),)
-      
-                                  ],
-                                )
-      
-      
-                                
-                              ],
-                            )
-                          ],
-                          
+                            
+                            
+                                  
+                                ],
+                              )
+                            ],
+                            
+                          ),
                         ),
                       ),
                     )

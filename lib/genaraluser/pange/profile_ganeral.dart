@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/My_widget/My_settingElement.dart';
+import 'package:nornsabai/Myfunction/globalFunc/alarmsystem/function/alarm_func.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/profile/sidepage/caretaker.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/profile/sidepage/request.dart';
 import 'package:nornsabai/login.dart';
@@ -106,6 +107,12 @@ class ProfileGeneral extends StatelessWidget {
               ),
 
               SizedBox(height: 20,),
+
+              FilledButton(onPressed: ()async{
+                  UserStatusService test = UserStatusService(docId: userDocId);
+                  test.updateBreathingF();
+              }, child: Text("test call")),
+
 
               // account
               settingElement(
