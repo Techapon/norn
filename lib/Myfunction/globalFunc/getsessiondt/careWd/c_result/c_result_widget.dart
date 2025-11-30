@@ -209,6 +209,7 @@ Widget showtimeItem({
   required IconData icon
 }) {
   return Row(
+    mainAxisSize: MainAxisSize.min,
     children: [
       CircleAvatar(
         radius: 28, 

@@ -23,7 +23,7 @@ class buildBarDetailsState extends State<buildBarDetails> {
     List<Color> headColor =[Colors.black,Color(0xFF3373A6)];
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 30),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

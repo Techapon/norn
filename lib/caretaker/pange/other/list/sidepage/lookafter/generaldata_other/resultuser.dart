@@ -431,16 +431,16 @@ class ResultuserState extends State<Resultuser> {
                     ),
                             
                     // bottom part
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 17.5,right: 17.5,top: 25),
-                        child: Container(
-                          height: 235,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 25),
+                      child: Container(
+                        height: 235,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                            
+                                
                               // Time brabrabra
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,12 +461,14 @@ class ResultuserState extends State<Resultuser> {
                                   
                                 ],
                               ),
-                            
+                              
+                              SizedBox(width: 5,),
+                                
                               // pie graph & note
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                            
+                                
                                   // pie charts
                                   Container(
                                     height: 160,
@@ -474,7 +476,7 @@ class ResultuserState extends State<Resultuser> {
                                     // padding: ,
                                     decoration: BoxDecoration(
                                       color: Colors.blue[200],
-                                      borderRadius: BorderRadius.circular(2),
+                                      borderRadius: BorderRadius.circular(6),
                                      
                                     ),
                                     child: Column(
@@ -486,7 +488,7 @@ class ResultuserState extends State<Resultuser> {
                                       ],
                                     )
                                   ),
-                            
+                                
                                   // add note
                                   Row(
                                     children: [
@@ -510,11 +512,11 @@ class ResultuserState extends State<Resultuser> {
                                       ),
                                       SizedBox(width: 7.5),
                                       Text("See note",style: GoogleFonts.itim(fontSize: 15,color:  Colors.blue, fontWeight: FontWeight.w500),)
-                            
+                                
                                     ],
                                   )
-                            
-                            
+                                
+                                
                                   
                                 ],
                               )
