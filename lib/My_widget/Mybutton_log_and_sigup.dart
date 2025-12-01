@@ -27,7 +27,7 @@ class LogAndSignButton extends StatelessWidget {
             onPressed: onpressed,
             child: Text(
               text,
-              style: TextStyle(fontSize: 20,fontWeight: FontWeight.normal,height: 2.3),
+              style: TextStyle(fontSize: 23,fontWeight: FontWeight.normal,height: 2.3),
             )
           ),
         ),

@@ -42,7 +42,7 @@ class _InputTextFormState extends State<InputTextForm> {
         keyboardType: widget.inputype,
         obscureText: _obscureText,
         cursorColor: Color(0xFFB2D3E4),
-        style: TextStyle(fontSize: 16,color: Color.fromARGB(255, 81, 128, 152),fontWeight: FontWeight.w500),
+        style: TextStyle(fontSize: 18,color: Color.fromARGB(255, 81, 128, 152),fontWeight: FontWeight.w500),
       
         decoration: InputDecoration(
           enabledBorder: OutlineInputBorder(
@@ -83,7 +83,7 @@ class _InputTextFormState extends State<InputTextForm> {
           suffixIconColor: Color(0xFF4E87C8),
       
           contentPadding: EdgeInsets.symmetric(vertical: 0),
-          hint: Text(widget.hintText,style:  TextStyle(fontSize: 15,color: Color(0xFF61889C)),),
+          hint: Text(widget.hintText,style:  TextStyle(fontSize: 18,color: Color(0xFF61889C)),),
         ),
       
         validator: widget.validate,

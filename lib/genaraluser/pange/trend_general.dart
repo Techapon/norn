@@ -163,60 +163,62 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                 right: 30,
                 top: 5
               ),
-              child: Column(
-                children: [
-                  // decoration
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                       Padding(
-                        padding: EdgeInsetsGeometry.symmetric(vertical: 30),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Sleep",
-                              style: GoogleFonts.itim(fontSize: 45,color: headColor[0]),
-                            ),
-                            SizedBox(width: 5,),
-                            Text(
-                              "Trend",
-                              style: GoogleFonts.itim(fontSize: 45,color: headColor[1]),
-                            ),
-                            // SizedBox(width: 5,),
-                            Icon(Icons.bar_chart,color: Colors.black,size: 50,)
-                          ],
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // decoration
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                         Padding(
+                          padding: EdgeInsetsGeometry.symmetric(vertical: 30),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Sleep",
+                                style: GoogleFonts.itim(fontSize: 45,color: headColor[0]),
+                              ),
+                              SizedBox(width: 5,),
+                              Text(
+                                "Trend",
+                                style: GoogleFonts.itim(fontSize: 45,color: headColor[1]),
+                              ),
+                              // SizedBox(width: 5,),
+                              Icon(Icons.bar_chart,color: Colors.black,size: 50,)
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  
-                  // Sleep datatype widget
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SleepdataSelector(controller: controller),
-                    ],
-                  ),
-
-                  // SizedBox(height: 17.5,),
-
-                  // Chart
-                  Padding(
-                    padding: EdgeInsets.only(top: 20,bottom: 13),
-                    child: _buildChart(controller),
-                  ),
-
-                  PreriodSelector(controller: controller,),
-
-                  SizedBox(height: 15,),
-                  // Selected Bar Details
-                  _buildBarDetailsWrapper(controller),
-                    // _buildBarDetails(controller.selectedMetrics!),
-              
-                  SizedBox(height: 20),
-                ],
+                      ],
+                    ),
+                    
+                    // Sleep datatype widget
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SleepdataSelector(controller: controller),
+                      ],
+                    ),
+                
+                    // SizedBox(height: 17.5,),
+                
+                    // Chart
+                    Padding(
+                      padding: EdgeInsets.only(top: 20,bottom: 13),
+                      child: _buildChart(controller),
+                    ),
+                
+                    PreriodSelector(controller: controller,),
+                
+                    SizedBox(height: 15,),
+                    // Selected Bar Details
+                    _buildBarDetailsWrapper(controller),
+                      // _buildBarDetails(controller.selectedMetrics!),
+                
+                    SizedBox(height: 20),
+                  ],
+                ),
               ),
             );
 

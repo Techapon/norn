@@ -119,7 +119,7 @@ class LoginPage extends StatelessWidget {
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 35),
-                            child: Image.asset("image/nornsabai_logo.png",width: 150,),
+                            child: Image.asset("image/nornsabai_logo.png",width: 170,),
                           ),
                         ],
                       ),
@@ -180,7 +180,7 @@ class LoginPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Don't have an account",style: TextStyle(color: Color(0xFF646D70),fontSize: 15),),
+                          Text("Don't have an account",style: TextStyle(color: Color(0xFF646D70),fontSize: 18),),
                           SizedBox(width: 7.5,),
                           MyTextbutton(
                             text: "Signup here",

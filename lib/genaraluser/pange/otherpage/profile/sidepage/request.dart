@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
+import 'package:nornsabai/My_widget/MyrequestW.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/incare/incarecontroller.dart';
 import 'package:nornsabai/model/data_model/requestmodel.dart' show FriendRequestWithUserData;
 import 'package:nornsabai/model/reuse_model/color_model.dart';
@@ -21,14 +22,12 @@ class _RequestState extends State<Request> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BgColor.Bg1.color_code,
+      backgroundColor: BgColor.Bg2.color_code,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(left: 50,right: 50,top: 100),
           child: Column(
             children: [
-
-
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFFF3F3F3),
@@ -52,9 +51,14 @@ class _RequestState extends State<Request> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          Icon(Icons.account_circle_rounded,color: Colors.grey[400],size: 120,),
+                          SizedBox(width: 10,),
                           Text("Request",style: TextStyle(color: Colors.black,fontSize: 75),textAlign: TextAlign.center,),
                           SizedBox(width: 20,),
-                          Icon(Icons.mark_email_unread,color:Colors.black,size: 75,)
+                          SizedBox(
+                            height: 60,
+                            child: Icon(Icons.mark_email_unread,color: Colors.grey[400],size: 75,)
+                          )
                         ],
                       ),
                 
@@ -78,9 +82,9 @@ class _RequestState extends State<Request> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
-                                      Text("Awaiting response",style: TextStyle(color: BgColor.Bg2Gradient.color_code,fontSize: 32,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
-                                      Text("$count",style: TextStyle(color: BgColor.Bg2Gradient.color_code,fontSize: 40,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
-                                      Text("requests",style: TextStyle(color: BgColor.Bg2Gradient.color_code.withOpacity(0.7),fontSize: 25,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                                      Text("Awaiting response",style: TextStyle(color: BgColor.BottomNav_bg.color_code,fontSize: 32,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                                      Text("$count",style: TextStyle(color: BgColor.BottomNav_bg.color_code,fontSize: 40,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                                      Text("requests",style: TextStyle(color: BgColor.BottomNav_bg.color_code.withOpacity(0.7),fontSize: 25,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
                                     ],
                                   ),
                                 )
@@ -131,132 +135,11 @@ class _RequestState extends State<Request> {
                           final request = item.request;
                           final caretaker = item.caretaker;
           
-                          return Container(
-                            margin: EdgeInsets.symmetric(vertical: 15),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                width: 1,
-                                color: Colors.black
-                              )
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(left: 25,top: 20),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        caretaker?.username ?? 'Unknown User',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                      Text(
-                                        caretaker?.email ?? 'No email',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-          
-                                      Divider(),
-
-                                      Row(
-                                        children: [
-                                        Text(
-                                          'Requested: ${request.formattedCreate}',
-                                          style: TextStyle(
-                                            fontSize: 17,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-            
-                                        Text(
-                                          ' ${request.requesttPass} ago',
-                                          style: TextStyle(
-                                            fontSize: 17,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-          
-                                    // Decline Care
-                                    Expanded(
-                                      child: TextButton(
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                          padding: EdgeInsets.symmetric(vertical: 20),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.zero,
-                                          ),
-                                        ),
-                                        onPressed: () async{
-                                          MyDiaologAlertFuture(
-                                            context: context,
-                                            yesText: "Yes,I do",
-                                            cancelText: "Calcel",
-                                            mainText: "Decline care",
-                                            desscrip: "Are you sure to decile?",
-                                            whenSuccess: "Decline care success!!",
-                                            whenFail: "Decline care fail,Please try again",
-                                            onpressed: () async{
-                                              final result = await incarecontroller.declineRequest(
-                                                generalUserId: widget.userdocid!,
-                                                docId: request.docId,
-                                                caretakerId: request.fromCaretakerId ?? '',
-                                                requestData: request.toMap(),
-                                              );
-          
-                                              return result["success"];
-                                            }
-                                          );
-                                        },
-                                        child: Text("decline",style: TextStyle(color: Colors.red,fontSize: 20),)
-                                      ),
-                                    ),
-          
-                                    // Appect Care
-                                    Expanded(
-                                      child: TextButton(
-                                        onPressed: () async{
-                                          MyDiaologAlertFuture(
-                                            context: context,
-                                            yesText: "Yes,I do",
-                                            cancelText: "Calcel",
-                                            mainText: "Accept care",
-                                            desscrip: "Are you sure to accept?",
-                                            whenSuccess: "Accept care success!!",
-                                            whenFail: "Accept care fail,Please try again",
-                                            onpressed: () async{
-                                              final result = await incarecontroller.acceptRequest(
-                                                generalUserId: widget.userdocid!,
-                                                docId: request.docId,
-                                                caretakerId: request.fromCaretakerId ?? '',
-                                                requestData: request.toMap(),
-                                              );
-          
-                                              return result["success"];
-                                            }
-                                          );
-                                        },
-                                        child: Text("Accept",style: TextStyle(color: Colors.blue,fontSize: 20),)
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ),
+                          return MyrequestGe(
+                            request: request,
+                            caretaker: caretaker,
+                            incarecontroller: incarecontroller,
+                            userdocid: widget.userdocid,
                           );
                         }
                       );
