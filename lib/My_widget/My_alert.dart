@@ -151,7 +151,7 @@ void MyDiaologAlertFuture({
                     )
                     : successed
                     ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -166,7 +166,7 @@ void MyDiaologAlertFuture({
                       ),
                     )
                     : Padding(
-                        padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                        padding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: alrtpadding),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

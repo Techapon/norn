@@ -25,9 +25,33 @@ class _RequestState extends State<Request> {
       backgroundColor: BgColor.Bg2.color_code,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(left: 50,right: 50,top: 100),
+          padding: EdgeInsets.only(left: 50,right: 50,top: 0),
           child: Column(
             children: [
+
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10)
+                      ),
+                      child: IconButton(
+                        onPressed: (){
+                          Navigator.of(context).pop();
+                        },
+                        icon: Icon(Icons.arrow_back_ios_new),
+                        color: Colors.black,
+                        iconSize: 30,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFFF3F3F3),
@@ -51,13 +75,13 @@ class _RequestState extends State<Request> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.account_circle_rounded,color: Colors.grey[400],size: 120,),
+                          Icon(Icons.account_circle_rounded,color: Colors.grey[500],size: 120,),
                           SizedBox(width: 10,),
                           Text("Request",style: TextStyle(color: Colors.black,fontSize: 75),textAlign: TextAlign.center,),
                           SizedBox(width: 20,),
                           SizedBox(
                             height: 60,
-                            child: Icon(Icons.mark_email_unread,color: Colors.grey[400],size: 75,)
+                            child: Icon(Icons.mark_email_unread,color: Colors.grey[500],size: 75,)
                           )
                         ],
                       ),
@@ -104,7 +128,7 @@ class _RequestState extends State<Request> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only( topLeft: Radius.circular(26) ,topRight: Radius.circular(26)),
+                    borderRadius: BorderRadius.only( topLeft: Radius.circular(40) ,topRight: Radius.circular(40)),
                   ),
                   padding: EdgeInsets.only(top: 50,left: 40,right: 40),
                   child: StreamBuilder<List<FriendRequestWithUserData>>(
@@ -125,7 +149,15 @@ class _RequestState extends State<Request> {
           
                       // ไม่มีข้อมูล
                       if (requestsWithData .isEmpty) {
-                        return const Center(child: Text('No incoming requests',style: TextStyle(fontSize: 17.5),));
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.inbox_rounded,color: BgColor.Bg2Gradient.color_code ,size: 120,),
+                              Text('No incoming requests',style: TextStyle(fontSize: 25,color: Colors.black),)
+                            ],
+                          )
+                        );
                       }
           
                       return ListView.builder(

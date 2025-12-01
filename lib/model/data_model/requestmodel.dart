@@ -56,7 +56,13 @@ class FriendRequestModel {
   String get formattedCreate {
     final date = createdAt?.toDate();
     if (date == null) return 'N/A';
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  String get formattedCreateTime {
+    final date = createdAt?.toDate();
+    if (date == null) return 'N/A';
+    return '${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 
   String get formattedAccept {

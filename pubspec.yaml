@@ -81,8 +81,8 @@ dependencies:
   # slide up
   sliding_up_panel: ^2.0.0+1
 
-  # tap
-  dynamic_tabbar: ^1.0.9
+  # slidable
+  slideable: ^0.0.2
 
 # Logo App
 flutter_launcher_icons:
