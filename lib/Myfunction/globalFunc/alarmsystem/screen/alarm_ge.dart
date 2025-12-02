@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:nornsabai/genaraluser/general_main.dart';
 import 'package:nornsabai/globals.dart';
 import 'package:stroke_text/stroke_text.dart';
 
@@ -33,6 +34,9 @@ class _AlarmApneaState extends State<AlarmApnea> with SingleTickerProviderStateM
       duration: const Duration(seconds: 2),
     )..repeat();
     playAlarm();
+
+    // call care
+    updatebreath.updateBreathingF();
   }
 
   @override
@@ -45,55 +49,60 @@ class _AlarmApneaState extends State<AlarmApnea> with SingleTickerProviderStateM
   
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(  
-        color: const Color.fromARGB(255, 238, 62, 49),
-      ),
-      child: Center(
-        child: CustomPaint(
-          painter: WavePainter(_controller),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [Colors.red, const Color.fromARGB(255, 255, 100, 89)],
-                stops: [0.7,1.0],
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(  
+          color: const Color.fromARGB(255, 238, 62, 49),
+        ),
+        child: Center(
+          child: CustomPaint(
+            painter: WavePainter(_controller),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [Colors.red, const Color.fromARGB(255, 255, 100, 89)],
+                  stops: [0.7,1.0],
+                ),
+      
+                border: Border.all(
+                  color: Colors.redAccent,
+                  width: 1.5,
+                ),
               ),
-
-              border: Border.all(
-                color: Colors.redAccent,
-                width: 1.5,
-              ),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              shape: const CircleBorder(),
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: () {
-                  stopAlarm(); 
-                  Navigator.pop(context);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(100),
-                  child: StrokeText(
-                    text: "Stop Alarm",
-                    textStyle: GoogleFonts.itim(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.redAccent,
+              child: Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () {
+                    stopAlarm(); 
+                    // stop call care
+                    updatebreath.updateBreathingT();
+                    Navigator.pop(context);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(100),
+                    child: StrokeText(
+                      text: "Stop Alarm",
+                      textStyle: GoogleFonts.itim(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
+                      textAlign: TextAlign.center,
+                      strokeColor: Colors.white,
+                      strokeWidth: 5,
                     ),
-                    textAlign: TextAlign.center,
-                    strokeColor: Colors.white,
-                    strokeWidth: 5,
                   ),
                 ),
               ),
             ),
-          ),
-        )
+          )
+        ),
       ),
     );
   }

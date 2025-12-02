@@ -14,6 +14,7 @@ import 'package:nornsabai/genaraluser/pange/otherpage/record/page/sleep.dart';
 import 'package:nornsabai/genaraluser/pange/otherpage/record/widget/container.dart';
 import 'package:nornsabai/genaraluser/pange/result_ganeral.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:slideable/slideable.dart';
 
 class RecordGeneral extends StatefulWidget {
   const RecordGeneral({super.key,required this.latestSessionData,required this.setcurrent});
@@ -141,11 +142,19 @@ class _RecordGeneralState extends State<RecordGeneral> {
                   ],
                 ),
 
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 30),
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 50),
-                    width: double.infinity,
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 50,vertical: 30),
+                  width: double.infinity,
+                  child: Slideable(
+                    items: <ActionItems>[
+                    ActionItems(
+                      icon: Icon(Icons.alarm_add,color: Colors.blueAccent,size: 50,),
+                      onPress: () {
+                        Alarmapnea();
+                      },
+                      backgroudColor: Colors.transparent,
+                    ),
+                  ],
                     child: FilledButton(
                       style: FilledButton.styleFrom(
                         backgroundColor: Color.fromARGB(255, 87, 141, 203),

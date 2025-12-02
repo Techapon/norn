@@ -110,9 +110,7 @@ class _ListCareState extends State<ListCare> {
                     // Check for users who stopped breathing and trigger alarm
                     for (var request in requestsWithData) {
                       final isBreathing = request.targetUser?.isBreathing;
-                      final userId = request.targetUser?.userId ?? '';
-                      
-                      print("ISBE-----------------------${isBreathing}");
+                      final userId = request.targetUser?.userId ?? '';                      
 
                       if (isBreathing == null) {
                         
@@ -120,7 +118,10 @@ class _ListCareState extends State<ListCare> {
                         print("${request.targetUser?.username} is not in sleep session");
 
                         if (alarm) {
-                          Navigator.of(context).pop();
+                          // if AlarmInCare pop by itself dont pop again
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
                         }
 
                         alarm = false;
@@ -131,7 +132,10 @@ class _ListCareState extends State<ListCare> {
 
                        
                         if (alarm) {
-                          Navigator.of(context).pop();
+                          // if AlarmInCare pop by itself dont pop again
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
                         }
 
                         alarm = false;

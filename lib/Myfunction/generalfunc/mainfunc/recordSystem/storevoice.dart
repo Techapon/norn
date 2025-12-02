@@ -144,7 +144,6 @@ void storeAnalyzedVoice(Shortvoicemodel shortVoice) async{
   }
 }
 
-
 // create session
 Map<String,dynamic> createSession() {
   Map<String, dynamic> sessionTemStore = {
@@ -152,6 +151,7 @@ Map<String,dynamic> createSession() {
     "startTime": null,
     "endTime": null,
     "apnea": null,
+    "apneacount" : null,
     "quiet": null,
     "lound": null,
     "verylound": null,

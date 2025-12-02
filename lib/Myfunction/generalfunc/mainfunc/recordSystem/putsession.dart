@@ -51,6 +51,7 @@ Future<bool> addSleepSessionData({
       'startTime': sleepData['startTime'],
       'endTime': sleepData['endTime'],
       'apnea': sleepData['apnea'],
+      'apneacount': sleepData['apneacount'],
       'quiet': sleepData['quiet'],
       'lound': sleepData['lound'],
       'verylound': sleepData['verylound'],
@@ -140,6 +141,7 @@ Future<bool> addSleepSessionData({
 
     // checkapnea
     lastProcessedId = 0;
+    apneacount = 0;
 
     consecutiveApneaSeconds = 0;
     alerted = false;

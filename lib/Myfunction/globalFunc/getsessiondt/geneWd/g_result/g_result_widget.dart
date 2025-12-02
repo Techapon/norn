@@ -202,6 +202,19 @@ Widget buildSoreDetial({
 
 }
 
+Widget buildApneaSeverity({
+  required String apneaseverity,
+  required IconData icon
+}) {
+  String title = "Apnea severity";
+  String desscip = "${apneaseverity}";
+
+  return showtimeItem(
+    title: title,
+    desscrip: desscip,
+    icon: icon
+  );
+}
 
 Widget showtimeItem({
   required String title,
@@ -213,7 +226,7 @@ Widget showtimeItem({
       CircleAvatar(
         radius: 55, 
         backgroundColor: Colors.blue[200], 
-        child: Icon(icon,color: Colors.black,size: 40,), 
+        child: Icon(icon,color: Colors.black,size: 45,), 
       ),
       SizedBox(width: 7.5,),
       Column(

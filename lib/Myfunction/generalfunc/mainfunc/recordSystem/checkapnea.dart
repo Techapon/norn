@@ -14,6 +14,8 @@ int consecutiveApneaSeconds = 0;
 int lastProcessedId = 0;
 bool alerted = false;
 
+int apneacount = 0;
+bool apneabefore = false;
 
 // file path part
 List<Map<String,dynamic>> ListApneabirth =[];
@@ -42,6 +44,12 @@ void checkApneaContinuity(Shortvoicemodel shortvoice) {
       // check type of Rresult
       if (shortVoiceItem.aianalyzereault == "Apnea") {
         consecutiveApneaSeconds++;
+        if (!apneabefore){
+          apneacount++;
+        }
+        apneabefore = true;
+
+        
 
         print("หายใจติดต่อตอนนี้เป็น ${consecutiveApneaSeconds} ");
 
@@ -59,16 +67,18 @@ void checkApneaContinuity(Shortvoicemodel shortvoice) {
           AlarmApnea();
           
           // update breath status
-          updatebreath.updateBreathingF();
+          // updatebreath.updateBreathingF();
           
-
           apneacritical = true;
 
           alerted = true;
         }
       }else {
         consecutiveApneaSeconds = 0;
+        
+        apneabefore = false;
 
+        // Brathing
         updatebreath.updateBreathingT();
 
         deleteAudioFile(shortVoiceItem.filePath!);

@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:nornsabai/genaraluser/general_main.dart';
 import 'package:nornsabai/globals.dart';
 import 'package:stroke_text/stroke_text.dart';
 
@@ -48,8 +49,9 @@ class _AlarmApneaState extends State<AlarmApnea> with SingleTickerProviderStateM
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(  

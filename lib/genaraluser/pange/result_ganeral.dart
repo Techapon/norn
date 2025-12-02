@@ -1,3 +1,5 @@
+import 'dart:io' as CupertinoIcons;
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,6 +39,7 @@ class ResultGaneralState extends State<ResultGaneral> {
   String? _sleeptime;
   SnoreStats? _snoredetial;
   String? _note;
+  String? _apneaseverity;
   List<Map<String, dynamic>> allsleepsession =[];
 
   // loading
@@ -64,6 +67,7 @@ class ResultGaneralState extends State<ResultGaneral> {
       _sleeptime = controller.getTotalSleepTime();
       _snoredetial = controller.getSnoreStatistics();
       _note = controller.getNote();
+      _apneaseverity = controller.getApneaSeverity();
       
       allsleepsession = await controller.getSleepTimeandId();
       
@@ -89,6 +93,7 @@ class ResultGaneralState extends State<ResultGaneral> {
       _sleeptime = controller.getTotalSleepTime();
       _snoredetial = controller.getSnoreStatistics();
       _note = controller.getNote();
+      _apneaseverity = controller.getApneaSeverity();
 
       allsleepsession = await controller.getSleepTimeandId();
       print(allsleepsession);
@@ -542,6 +547,14 @@ class ResultGaneralState extends State<ResultGaneral> {
                                 snoredetial: _snoredetial!,
                                 icon: Icons.record_voice_over_sharp
                               ),
+                              SizedBox(height: 20,),
+
+                              // icon suit with apnea severity
+                              buildApneaSeverity(
+                                apneaseverity: _apneaseverity!,
+                                icon: Icons.graphic_eq_sharp
+                              ),
+
                               // SizedBox(height: 12,),
                               // buildSoreDetial(
                               //   snoredetial: _snoredetial!,
@@ -576,8 +589,8 @@ class ResultGaneralState extends State<ResultGaneral> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   buildPiechart(category: _categortList!),
-                                  SizedBox(height:10,),
-                                  Text("Summaarize",style:  GoogleFonts.itim(fontSize: 17.5,color: Colors.white),)
+                                  SizedBox(height:3,),
+                                  Text("Summaarize",style:  GoogleFonts.itim(fontSize: 25,color: Colors.white),)
                                 ],
                               )
                             ),

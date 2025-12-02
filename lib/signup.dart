@@ -128,10 +128,15 @@ class Signup extends StatelessWidget {
       "email": email,
       "phoneNumber": phoneNumber,
       "whoareu":whoareu,
+
+      "detail":{
+        "gender": null,
+        "age": null,
+        "weight": null,
+        "height": null,
+      }
     });
 
-
-    
   }
 
   @override

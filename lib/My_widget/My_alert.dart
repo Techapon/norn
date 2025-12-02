@@ -451,7 +451,7 @@ void MyDiaologAlertLoad({
     final mediascreen = MediaQuery.of(context).size.width;
 
     double maintextscale = mediascreen / 20;
-    // double desscripscale = maintextscale * 0.7;
+    double desscripscale = maintextscale * 0.7;
 
     double insetpadding = maintextscale  * 4.0;
     double alrtpadding = maintextscale  * 0.8;
@@ -460,8 +460,6 @@ void MyDiaologAlertLoad({
     double loadingsize = maintextscale  * 2.8;
     // double iconraduis = maintextscale  * 1.4;
     // double iconsize = maintextscale  * 1.6;
-
-    double borderraduis = maintextscale  * 0.24;
 
       return WillPopScope(
         onWillPop: () async => pop,
@@ -475,7 +473,7 @@ void MyDiaologAlertLoad({
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(borderraduis)
+                borderRadius: BorderRadius.circular(16)
               ),
               child: Column(
                   children: [
@@ -494,7 +492,7 @@ void MyDiaologAlertLoad({
                                 ),
                             ),
                             SizedBox(height: 20,),
-                            Text(desscrip,style: GoogleFonts.itim(fontSize: 17.5,color: Colors.black,fontWeight: FontWeight.w400),)
+                            Text(desscrip,style: GoogleFonts.itim(fontSize: desscripscale,color: Colors.black,fontWeight: FontWeight.w400),textAlign: TextAlign.center,)
                           ],
                       ),
                     ),
@@ -539,12 +537,12 @@ void MyDiaologAlertSuccess({
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderraduis),
         ),
-        insetPadding: EdgeInsets.symmetric(vertical: 0,horizontal: insetpadding),
+        insetPadding: EdgeInsets.symmetric(vertical: insetpadding,horizontal: insetpadding),
         child: SingleChildScrollView(
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(6)
+              borderRadius: BorderRadius.circular(16)
             ),
             child: Column(
                 children: [
@@ -610,12 +608,12 @@ void MyDiaologAlertFail({
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(6)
+              borderRadius: BorderRadius.circular(16)
             ),
             child: Column(
                 children: [
                   Padding(
-                      padding: EdgeInsets.symmetric(vertical: alrtpadding),
+                      padding: EdgeInsets.symmetric(vertical: alrtpadding,horizontal: insetpadding),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

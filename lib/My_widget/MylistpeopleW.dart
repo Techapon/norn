@@ -23,7 +23,7 @@ class MylistpeopleGe extends StatelessWidget {
           icon: const Icon(
             Icons.delete,
             color: Colors.red,
-            size: 40,
+            size: 50,
 
           ),
           onPress: () {

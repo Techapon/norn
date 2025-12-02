@@ -347,6 +347,27 @@ class SleepController {
     return "Unknown";
   }
 
+  String getApneaSeverity() {
+    if (!isLoaded) return "Unknown";
+    final totalSleepStr = getTotalSleepTime();
+    final totalSleepMinutes = _parseTimeToMinutes(totalSleepStr);
+    final apneaCount = sessionData!['apneacount'] as int? ?? 0;
+    double avgapnea = apneaCount / (totalSleepMinutes/60) ;
+    int apneacountperhour = avgapnea.round();
+
+    String apneaseverity = "";
+    if (  apneacountperhour >= 5 && apneacountperhour < 15) {
+      apneaseverity = "Mild ,${apneacountperhour} events per hours";
+    } else if (apneacountperhour >= 15 && apneacountperhour < 30) {
+      apneaseverity = "Moderate ,${apneacountperhour} events per hours";
+    } else if (apneacountperhour >= 30) {
+      apneaseverity = "Severe ,${apneacountperhour} events per hours";
+    } else {
+      apneaseverity = "${apneacountperhour}, less than 5 events per hours";
+    }
+    return apneaseverity;
+  }
+
 
   Map<String, CategoryDetail> getCategoryDetails() {
     if (!isLoaded) return {};
@@ -414,7 +435,6 @@ class SleepController {
     final snoreMinutesRemainder = (snoreMinutes % 60).toInt();
     final totalSnoreTime =
         '$snoreHours:${snoreMinutesRemainder.toString().padLeft(2, '0')}';
-
     return SnoreStats(
       totalSnoreTime: totalSnoreTime,
       snorePercentage: double.parse(snorePercentage.toStringAsFixed(1)),
