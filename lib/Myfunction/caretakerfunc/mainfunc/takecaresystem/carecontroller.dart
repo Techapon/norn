@@ -96,6 +96,9 @@ class CaretakerFriendSystem {
     }
   }
 
+
+
+
   /// ยกเลิก request
   Future<Map<String, dynamic>> cancelRequest({
     required String caretakerId,
@@ -349,6 +352,25 @@ class CaretakerFriendSystem {
     }
   }
 
+  Stream<int> getCaretakerCount(String caretakerId) {
+    return _firestore
+        .collection(_caretakerCollection)
+        .doc(caretakerId)
+        .collection(_incarelistSubcollection)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  Stream<int> getPendingRequestCount(String caretakerId) {
+    return _firestore
+      .collection(_generalUserCollection)
+      .doc(caretakerId)
+      .collection(_requestsSubcollection)
+      .snapshots()
+      .map((snapshot) => snapshot.docs.length);
+  }
+
+
   Future<bool> _checkExistingRequest(
     String caretakerId,
     String targetUserId,
@@ -383,6 +405,7 @@ class CaretakerFriendSystem {
         userId: userId,
         username: data['username'] ?? '',
         email: data['email'] ?? '',
+        phone: data['phoneNumber'] ?? 0,
         isBreathing: data['isBreathing'],
       );
     } catch (e) {

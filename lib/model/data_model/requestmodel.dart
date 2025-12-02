@@ -62,26 +62,29 @@ class FriendRequestModel {
   String get formattedCreateTime {
     final date = createdAt?.toDate();
     if (date == null) return 'N/A';
-    return '${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    final ampm = date.hour >= 12 ? 'PM' : 'AM';
+    return '${date.hour}:${date.minute.toString().padLeft(2, '0')} $ampm';
   }
 
   String get formattedAccept {
     final date = acceptedAt?.toDate();
     if (date == null) return 'N/A';
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    final ampm = date.hour >= 12 ? 'PM' : 'AM';
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')} $ampm';
   }
 
   String get formattedDecline {
     final date = declinedAt?.toDate();
     if (date == null) return 'N/A';
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    final ampm = date.hour >= 12 ? 'PM' : 'AM';
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')} $ampm';
   }
 
   String get requesttPass {
     final date = createdAt?.toDate();
     final DateTime nowday = DateTime.now();
     if (date == null) return 'N/A';
-    final String passed = formatDuration(nowday.difference(date));
+    final String passed = formatSmallDuration(nowday.difference(date));
     return passed;
   }
 
@@ -89,7 +92,7 @@ class FriendRequestModel {
     final date = acceptedAt?.toDate();
     final DateTime nowday = DateTime.now();
     if (date == null) return 'N/A';
-    final String passed = formatDuration(nowday.difference(date));
+    final String passed = formatSmallDuration(nowday.difference(date));
     return passed;
   }
 
@@ -97,7 +100,7 @@ class FriendRequestModel {
     final date = declinedAt?.toDate();
     final DateTime nowday = DateTime.now();
     if (date == null) return 'N/A';
-    final String passed = formatDuration(nowday.difference(date));
+    final String passed = formatSmallDuration(nowday.difference(date));
     return passed;
   }
 
@@ -114,12 +117,14 @@ class UserData {
   final String userId;
   final String username;
   final String email;
+  final int phone;
   final bool? isBreathing;
 
   UserData({
     required this.userId,
     required this.username,
     required this.email,
+    required this.phone,
     this.isBreathing,
   });
 

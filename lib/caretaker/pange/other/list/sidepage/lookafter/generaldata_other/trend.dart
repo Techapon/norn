@@ -59,7 +59,7 @@ class _TrenduserState extends State<Trenduser> {
   @override
   Widget build(BuildContext context) {
     // Same UI as above...
-    return SleepTrendPage(userDocId: generalId); // Reuse the widget structure
+    return SleepTrendPage(userDocId: generalId,generaldata: generaldata); // Reuse the widget structure
   }
 }
 
@@ -67,8 +67,9 @@ class _TrenduserState extends State<Trenduser> {
 
 class SleepTrendPage extends StatefulWidget {
   final String userDocId;
+  final FriendRequestWithUserData generaldata;
 
-  SleepTrendPage({required this.userDocId});
+  SleepTrendPage({required this.userDocId, required this.generaldata});
 
   @override
   _SleepTrendPageState createState() => _SleepTrendPageState();
@@ -157,6 +158,17 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
               );
             }
 
+            if (controller.chartData.isEmpty) {
+              return Container(
+                child: Center(
+                  child: Text(
+                    'No data available',
+                    style: TextStyle(fontSize: 18, color: Colors.black),
+                  ),
+                ),
+              );
+            }
+
             // Main widget
             return Scaffold(
               backgroundColor: BgColor.Bg1.color_code,
@@ -169,6 +181,32 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
                   ),
                   child: Column(
                     children: [
+
+                    Padding(
+                      padding: EdgeInsets.only(top: 15,bottom: 5),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            width: 1,
+                            color: Colors.grey[300]!
+                          )
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              child: Icon(Icons.account_circle_sharp,color: Colors.grey[500],size: 30,),
+                            ),
+                            SizedBox(width: 5,),
+                            Text("${widget.generaldata.targetUser?.username ?? 'Unknown'}",style: TextStyle(fontSize: 15),)
+                          ],
+                        ),
+                      ),
+                    ),
+
                       // decoration
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -268,10 +306,13 @@ class _SleepTrendPageState extends State<SleepTrendPage> {
     final chartData = controller.chartData;
 
     if (chartData.isEmpty) {
-      return Center(
-        child: Text(
-          'No data available',
-          style: TextStyle(fontSize: 18, color: Colors.grey),
+      return Container(
+        height: 275,
+        child: Center(
+          child: Text(
+            'No data available',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
         ),
       );
     }

@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
+import 'package:nornsabai/Myfunction/caretakerfunc/mainfunc/takecaresystem/carecontroller.dart';
 import 'package:nornsabai/model/data_model/requestmodel.dart';
 import 'package:nornsabai/Myfunction/generalfunc/mainfunc/incare/incarecontroller.dart';
 
@@ -206,3 +207,158 @@ class MyrequestGe extends StatelessWidget {
     );
   }
 }
+
+
+class MyrequestCa extends StatelessWidget {
+  MyrequestCa({super.key,required this.request,required this.generak,required this.incarecontroller,required this.userdocid});
+
+  final FriendRequestModel request;
+  final UserData? generak;
+  final CaretakerFriendSystem incarecontroller;
+  final String userdocid;
+
+  @override
+  Widget build(BuildContext context) {
+
+    String generalname = "";
+    if ( generak?.username != null) {
+      generalname = generak!.username![0].toUpperCase() + generak!.username!.substring(1);
+    }else {
+      generalname = "Unknown User";
+    }
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.symmetric(vertical: 3,horizontal: 3),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          width: 1,
+          color: Color.fromARGB(255, 190, 190, 190)
+        )
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+                      
+              
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  
+                  // main datail
+                  Container(
+                    child: Row(
+                      children: [
+              
+                        Container(
+                          child: Icon(Icons.account_circle_sharp,color: Colors.grey[500],size: 55,),
+                        ),
+                        SizedBox(width: 3,),
+              
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "request to : ",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[800],
+                                  ),
+                                ),
+                                Text(
+                                  //  if not null then uppercase
+                                  generalname,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                              ],
+                            ),
+              
+                            Padding(
+                              padding: EdgeInsetsGeometry.only(left: 2),
+                              child: Text(
+                                "Request sent ${request.requesttPass} ago at ${request.formattedCreateTime}",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+          
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          MyDiaologAlertFuture(
+                            context: context,
+                            yesText: "Yes,I do",
+                            cancelText: "Cancel",
+                            mainText: "Cancel request",
+                            desscrip: "Are you sure to cancel?",
+                            whenSuccess: "Cancel request success!!",
+                            whenFail: "Cancel request fail",
+                            onpressed: () async{
+                              final result = await incarecontroller.cancelRequest(
+                                caretakerId: userdocid,
+                                docId: request.docId,
+                                targetUserId: request.targetUserId ?? '',                            
+                              );
+          
+                              return result["success"];
+                            }
+                          );
+                        },
+          
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20,vertical: 0),
+                          child: Text(
+                            "calcel",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 15,
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.red, 
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+          
+                ],
+              ),
+                      
+              // request at
+              Positioned(
+                top: 8.5,
+                right: 17.5,
+                child: Text(
+                  '${request.formattedCreate}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+

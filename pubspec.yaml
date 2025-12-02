@@ -85,6 +85,9 @@ dependencies:
   # slidable
   slideable: ^0.0.2
 
+  # icon color
+  gradient_icon: ^2.0.9
+
 # Logo App
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -119,6 +122,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - image/nornsabai_logo.png
+    - image/norn_noText.png
     - image/recordingBg.jpg
     - image/dis1.jpg
     - image/dis2.jpg

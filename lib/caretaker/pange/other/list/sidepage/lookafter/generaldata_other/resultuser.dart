@@ -43,6 +43,7 @@ class ResultuserState extends State<Resultuser> {
   String? _sleeptime;
   SnoreStats? _snoredetial;
   String? _note;
+  String? _apneaseverity;
   List<Map<String, dynamic>> allsleepsession =[];
 
   // loading
@@ -72,6 +73,7 @@ class ResultuserState extends State<Resultuser> {
       _sleeptime = controller.getTotalSleepTime();
       _snoredetial = controller.getSnoreStatistics();
       _note = controller.getNote();
+      _apneaseverity = controller.getApneaSeverity();
       
       allsleepsession = await controller.getSleepTimeandId();
       
@@ -97,6 +99,7 @@ class ResultuserState extends State<Resultuser> {
       _sleeptime = controller.getTotalSleepTime();
       _snoredetial = controller.getSnoreStatistics();
       _note = controller.getNote();
+      _apneaseverity = controller.getApneaSeverity();
 
       allsleepsession = await controller.getSleepTimeandId();
       print(allsleepsession);
@@ -357,11 +360,17 @@ class ResultuserState extends State<Resultuser> {
     if (!controller.isLoaded || controller.allDots.isEmpty) {
       return RefreshIndicator(
         onRefresh: _onRefresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Container(
-            height: MediaQuery.of(context).size.height - 150,
-            child: const Center(child: Text('No data available')),
+        child: Center(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Container(
+              child: Center(
+                child: Text(
+                  'No data available',
+                  style: TextStyle(fontSize: 18, color: Colors.black),
+                ),
+              ),
+            )
           ),
         ),
       );
@@ -379,10 +388,35 @@ class ResultuserState extends State<Resultuser> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+
+                    Padding(
+                      padding: EdgeInsets.only(top: 15,bottom: 5),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            width: 1,
+                            color: Colors.grey[300]!
+                          )
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              child: Icon(Icons.account_circle_sharp,color: Colors.grey[500],size: 30,),
+                            ),
+                            SizedBox(width: 5,),
+                            Text("${widget.generaldata.targetUser?.username ?? 'Unknown'}",style: TextStyle(fontSize: 15),)
+                          ],
+                        ),
+                      ),
+                    ),
                             
                     // day
                     Padding(
-                      padding: EdgeInsetsGeometry.symmetric(vertical: 15),
+                      padding: EdgeInsetsGeometry.symmetric(vertical: 0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -435,7 +469,7 @@ class ResultuserState extends State<Resultuser> {
                     Padding(
                       padding: const EdgeInsets.only(top: 25),
                       child: Container(
-                        height: 235,
+                        // height: 235,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
@@ -451,13 +485,20 @@ class ResultuserState extends State<Resultuser> {
                                     startend: _startend ?? {},
                                     icon: Icons.timelapse_rounded
                                   ),
+                                  SizedBox(height: 13,),
                                   buildSleepTime(
                                     sleeptime: _sleeptime ?? '',
                                     icon: Icons.bed_rounded
                                   ),
+                                  SizedBox(height: 13,),
                                   buildSoreDetial(
                                     snoredetial: _snoredetial!,
                                     icon: Icons.record_voice_over_sharp
+                                  ),
+                                  SizedBox(height: 13,),
+                                  buildApneaSeverity(
+                                    apneaseverity: _apneaseverity ?? '',
+                                    icon: Icons.graphic_eq_sharp
                                   ),
                                   
                                 ],
@@ -467,7 +508,7 @@ class ResultuserState extends State<Resultuser> {
                                 
                               // pie graph & note
                               Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                 
                                   // pie charts
@@ -489,7 +530,9 @@ class ResultuserState extends State<Resultuser> {
                                       ],
                                     )
                                   ),
-                                
+
+                                  SizedBox(height: 28,),
+
                                   // add note
                                   Row(
                                     children: [

@@ -54,8 +54,14 @@ class _AddpageState extends State<Addpage> {
               final data = doc.data();
               return SearchItem(
                 docid: doc.id,
-                username: data['username'] ?? '', 
-                email: data['email'] ?? '', 
+                username: data['username'] ?? '-', 
+                email: data['email'] ?? '-', 
+                phone: data['phoneNumber'] ?? '-', 
+
+                gender: data['detail']?['gender'] ?? '-', 
+                age: (data['detail']?['age'] ?? 0).toInt(), 
+                weight: (data['detail']?['weight'] ?? 0).toDouble(), 
+                height: (data['detail']?['height'] ?? 0).toDouble(), 
               );
             }).toList();
 
@@ -131,7 +137,7 @@ class _AddpageState extends State<Addpage> {
       backgroundColor: BgColor.Bg1.color_code,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 15,horizontal: 10),
+          padding: EdgeInsets.symmetric(vertical: 15,horizontal: 15),
           child: Column(
             children: [
               Row(
@@ -172,6 +178,7 @@ class _AddpageState extends State<Addpage> {
                 onChanged: searchUser
               ),
 
+              SizedBox(height: 15,),
               // General user  for add friend!!
               Expanded(
                 child: Container(
@@ -183,7 +190,7 @@ class _AddpageState extends State<Addpage> {
                       ? Center(
                         child: Text(
                           searchControll.text.isEmpty
-                            ? "There are no users in the system."
+                            ? "There are no users"
                             : "The user you are searching for was not found."
                         ),
                       )
@@ -192,31 +199,107 @@ class _AddpageState extends State<Addpage> {
                         itemBuilder: (context, index) {
                         final geneUser = geneUserList[index];
 
-                        return ListTile(
-                          leading: CircleAvatar(
-                            child:  Text(geneUser.username.isNotEmpty ? geneUser.username[0].toUpperCase() : "?"),
+                        // return ListTile(
+   
+                        //   title: Text(geneUser.username.isNotEmpty ? geneUser.username : "?"),
+                        //   subtitle: Text(geneUser.email),
+                        //   selectedColor: Colors.white,
+
+                        //   onTap: () {
+                        //     showDialog(
+                        //       context: context,
+                        //       builder: (BuildContext context) {
+                                // return Usershowcase(
+                                //   user: geneUser,
+                                //   carecontroller:widget.carecontroller,
+                                //   careDocId:  widget.careDocId,
+                                // );
+                        //       }
+                        //     );
+                        //   },
+
+                        //   trailing: Icon(Icons.add,color: Colors.black,size: 20,),
+                        // );
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(26),
+                            // border: Border.all(
+                            //   width: 1.5,
+                            //   color: Color.fromARGB(255, 190, 190, 190)
+                            // )
                           ),
-                          title: Text(geneUser.username.isNotEmpty ? geneUser.username : "?"),
-                          subtitle: Text(geneUser.email),
-                          selectedColor: Colors.white,
+                          margin: EdgeInsets.only(bottom: 10),
+                          padding: EdgeInsets.symmetric(vertical: 7.5,horizontal: 10),
+                          child: Row(
+                            children: [
+                              Container(
+                                child: Icon(Icons.account_circle_sharp,color: Colors.grey[500],size: 55,),
+                              ),
+                              SizedBox(width: 10,),
+                              
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    geneUser.username.isNotEmpty ? "${geneUser.username[0].toUpperCase()}${geneUser.username.substring(1)}" : "?",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(left:5),
+                                    child: Text(
+                                      geneUser.email,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[500],
+                                        height: 1.0
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
 
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Usershowcase(
-                                  user: geneUser,
-                                  carecontroller:widget.carecontroller,
-                                  careDocId:  widget.careDocId,
-                                );
-                              }
-                            );
-                          },
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.add,color: Colors.black.withOpacity(0.75),size: 25,),
+                                      onPressed: () {
+                                        print("SHOW--------");
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return Usershowcase(
+                                              user: geneUser,
+                                              carecontroller:widget.carecontroller,
+                                              careDocId:  widget.careDocId,
+                                              setState: () {
+                                                _listenToUsers();
+                                              }
+                                            );
+                                          }
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                            ],
+                            )
+                          );
 
-                          trailing: Icon(Icons.add,color: Colors.black,size: 20,),
-                        );
-                        }
-                      ),
+                        // 
+                      }
+                    ),
                 ),
               )
             ],

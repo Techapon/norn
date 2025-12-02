@@ -291,6 +291,7 @@ class GeneralUserFriendSystem {
         userId: caretakerId,
         username: data['username'] ?? data['name'] ?? '',
         email: data['email'] ?? '',
+        phone: data['phoneNumber'] ?? 0,
       );
     } catch (e) {
       print('Error getting caretaker data: $e');

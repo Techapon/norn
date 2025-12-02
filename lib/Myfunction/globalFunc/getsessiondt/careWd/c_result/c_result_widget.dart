@@ -202,6 +202,22 @@ Widget buildSoreDetial({
 
 }
 
+Widget buildApneaSeverity({
+  required String apneaseverity,
+  required IconData icon
+}) {
+  String title = "Apnea severity";
+  String desscip = "${apneaseverity}";
+
+  return showtimeItem(
+    title: title,
+    desscrip: desscip,
+    icon: icon
+  );
+}
+
+
+
 
 Widget showtimeItem({
   required String title,
