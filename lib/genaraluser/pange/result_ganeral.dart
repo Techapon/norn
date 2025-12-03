@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:nornsabai/My_widget/My_alert.dart';
 import 'package:nornsabai/Myfunction/globalFunc/dailygraph.dart';
 
@@ -293,7 +294,34 @@ class ResultGaneralState extends State<ResultGaneral> {
           };
         }
 
-        List<DateTime> dataTimeList = allsleepsession.map((data) => data["startTime"] as DateTime).toList();
+
+        List<List<Map<String, dynamic>>> twinDataTimeList = [];
+        List<DateTime> dataTimeList = [];
+        
+        Map<String, List<Map<String, dynamic>>> sessionsByDate = {};
+        
+        for (var session in allsleepsession) {
+          DateTime sessionDate = session["startTime"] as DateTime;
+
+         
+          String dateKey = "${sessionDate.year}-${sessionDate.month}-${sessionDate.day}";
+          
+          if (!sessionsByDate.containsKey(dateKey)) {
+            sessionsByDate[dateKey] = [];
+          }
+          sessionsByDate[dateKey]!.add(session);
+        }
+        
+      
+        sessionsByDate.forEach((dateKey, sessions) {
+          if (sessions.length > 1) {
+            
+            twinDataTimeList.add(sessions);
+            print("📅 Found ${sessions.length} sessions on same date: $dateKey");
+          }
+          
+          dataTimeList.add(sessions.first["startTime"] as DateTime);
+        });
 
         DateTime startCalen = dataTimeList.last;
         DateTime endCalen = dataTimeList.first;
@@ -301,6 +329,8 @@ class ResultGaneralState extends State<ResultGaneral> {
         Map<DateTime, int> datasetsDate = {
           for (var date in dataTimeList) date: 1
         };
+
+        
         
         return Dialog(
         backgroundColor: Colors.transparent,
@@ -371,31 +401,131 @@ class ResultGaneralState extends State<ResultGaneral> {
                       value.day,
                     );
                     print("${dateClick}");
-                    Map<String,dynamic> dataResult =  findIdByExactDateTime(allsleepsession,dateClick);
-                    if (dataResult["result"]) {
-                      MyDiaologAlertFuture(
+                    
+                    // Check if this date has multiple sessions
+                    String dateKey = "${dateClick.year}-${dateClick.month}-${dateClick.day}";
+                    List<Map<String, dynamic>>? sessionsOnThisDate;
+                    
+                    for (var twinList in twinDataTimeList) {
+                      DateTime firstSessionDate = twinList.first["startTime"] as DateTime;
+                      String twinDateKey = "${firstSessionDate.year}-${firstSessionDate.month}-${firstSessionDate.day}";
+                      if (twinDateKey == dateKey) {
+                        sessionsOnThisDate = twinList;
+                        break;
+                      }
+                    }
+                    
+                    // If multiple sessions, show selection dialog
+                    if (sessionsOnThisDate != null && sessionsOnThisDate.length > 1) {
+                      showDialog(
                         context: context,
-                        yesText: "Yes,I do",
-                        cancelText: "cancle",
-                        mainText: "Choose sleep session",
-                        whenSuccess: "Session data loaded!!",
-                        whenFail: "Something went wrong,Please try again",
-                        desscrip: "Do you want to choose sleep session?",
-                        onpressed: () async{
-                          await controller.loadLatestSession(sessionId: dataResult["id"]);
-                          _dateToday = controller.getDateToday();
-                          _startend = controller.getSleepStartEnd();
-                          _sleeptime = controller.getTotalSleepTime();
-                          _snoredetial = controller.getSnoreStatistics();
-                          _note = controller.getNote();
-                
-                          if (mounted) {
-                            setState(() {});
-                          }
-                          return true;
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "Select Session",
+                                    style: GoogleFonts.itim(fontSize: 30, fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    "Found ${sessionsOnThisDate!.length} sessions on this date",
+                                    style: GoogleFonts.itim(fontSize: 24, color: Colors.grey),
+                                  ),
+                                  SizedBox(height: 25),
+                                  ...sessionsOnThisDate.asMap().entries.map((entry) {
+                                    int index = entry.key;
+                                    Map<String, dynamic> session = entry.value;
+                                    DateTime startTime = controller.parseDateTime(session["startTime"]) ?? DateTime.now();
+                                    DateTime endTime = controller.parseDateTime(session["endTime"]) ?? DateTime.now();
+                                    
+                                    return Container(
+                                      margin: EdgeInsets.only(bottom: 15),
+                                      child: ListTile(
+                                        tileColor: Colors.blue[50],
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          side: BorderSide(color: Colors.blue.shade200),
+                                        ),
+                                        title: Text(
+                                          "Session ${index + 1}",
+                                          style: GoogleFonts.itim(fontSize: 23, fontWeight: FontWeight.bold),
+                                        ),
+                                        subtitle: Text(
+                                          "${DateFormat('h:mm a').format(startTime)} - ${DateFormat('h:mm a').format(endTime)}",
+                                          style: GoogleFonts.itim(fontSize: 23),
+                                        ),
+                                        trailing: Icon(Icons.arrow_forward_ios, size: 24),
+                                        onTap: () {
+                                          Navigator.pop(context); // Close selection dialog
+                                          
+                                          // Show confirmation dialog
+                                          MyDiaologAlertFuture(
+                                            context: context,
+                                            yesText: "Yes,I do",
+                                            cancelText: "cancle",
+                                            mainText: "Choose sleep session",
+                                            whenSuccess: "Session data loaded!!",
+                                            whenFail: "Something went wrong,Please try again",
+                                            desscrip: "Load session from ${DateFormat('h:mm a').format(startTime)}?",
+                                            onpressed: () async{
+                                              await controller.loadLatestSession(sessionId: session["id"]);
+                                              _dateToday = controller.getDateToday();
+                                              _startend = controller.getSleepStartEnd();
+                                              _sleeptime = controller.getTotalSleepTime();
+                                              _snoredetial = controller.getSnoreStatistics();
+                                              _note = controller.getNote();
+                                    
+                                              if (mounted) {
+                                                setState(() {});
+                                              }
+                                              return true;
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  }).toList(),
+                                ],
+                              ),
+                            ),
+                          );
                         },
                       );
-                     
+                    } else {
+                      // Single session, proceed normally
+                      Map<String,dynamic> dataResult = findIdByExactDateTime(allsleepsession,dateClick);
+                      if (dataResult["result"]) {
+                        MyDiaologAlertFuture(
+                          context: context,
+                          yesText: "Yes,I do",
+                          cancelText: "cancle",
+                          mainText: "Choose sleep session",
+                          whenSuccess: "Session data loaded!!",
+                          whenFail: "Something went wrong,Please try again",
+                          desscrip: "Do you want to choose sleep session?",
+                          onpressed: () async{
+                            await controller.loadLatestSession(sessionId: dataResult["id"]);
+                            _dateToday = controller.getDateToday();
+                            _startend = controller.getSleepStartEnd();
+                            _sleeptime = controller.getTotalSleepTime();
+                            _snoredetial = controller.getSnoreStatistics();
+                            _note = controller.getNote();
+                  
+                            if (mounted) {
+                              setState(() {});
+                            }
+                            return true;
+                          },
+                        );
+                      }
                     }
                   },
                 
@@ -469,28 +599,31 @@ class ResultGaneralState extends State<ResultGaneral> {
               // day
               Padding(
                 padding: EdgeInsetsGeometry.symmetric(vertical: 30),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "${_dateToday?[0]}",
-                      style: GoogleFonts.itim(fontSize: 45,color: headColor[0]),
-                    ),
-                    SizedBox(width: 5,),
-                    Text(
-                      "${_dateToday?[1]}",
-                      style: GoogleFonts.itim(fontSize: 45,color: headColor[1]),
-                    ),
-                    // SizedBox(width: 5,),
-                    IconButton(
-                      onPressed: () async{
-                        showCalendar();
-                        
-                      },
-                      icon: Icon(Icons.date_range_outlined,color: Colors.black,size: 50,)
-                    )
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        "${_dateToday?[0]}",
+                        style: GoogleFonts.itim(fontSize: 45,color: headColor[0]),
+                      ),
+                      SizedBox(width: 5,),
+                      Text(
+                        "${_dateToday?[1]}",
+                        style: GoogleFonts.itim(fontSize: 45,color: headColor[1]),
+                      ),
+                      // SizedBox(width: 5,),
+                      IconButton(
+                        onPressed: () async{
+                          showCalendar();
+                          
+                        },
+                        icon: Icon(Icons.date_range_outlined,color: Colors.black,size: 50,)
+                      )
+                    ],
+                  ),
                 ),
               ),
                       
