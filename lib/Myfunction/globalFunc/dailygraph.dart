@@ -53,12 +53,12 @@ class SleepController {
           .get();
 
         if (sessionsQuery.docs.isEmpty) {
-          print('⚠️ Session ID $sessionId not found');
+          print('------------ ⚠️ Session ID $sessionId not found');
           return null;
         }
 
         targetSession = sessionsQuery.docs.first;
-        print("Loaded session ID: ${sessionId}");
+        print("------------ Loaded session ID: ${sessionId}");
       }else {
         getSesformId = false;
         final sessionsQuery = await firestore
@@ -78,7 +78,7 @@ class SleepController {
       final loadedSessionId = targetSession.get('id') as int; 
 
       if (_sessionId == loadedSessionId && allDots.isNotEmpty) {
-        print('ℹ️ Using cached data for session $loadedSessionId');
+        print('------------ ℹ️ Using cached data for session $loadedSessionId');
         return null;
       }
 
@@ -339,6 +339,15 @@ class SleepController {
     return '${duration.inHours}:${(duration.inMinutes % 60).toString().padLeft(2, '0')}';
   }
 
+    String getTotalSleepTimeInSec() {
+    if (!isLoaded) return '--:--';
+    final start = parseDateTime(sessionData!['startTime']);
+    final end = parseDateTime(sessionData!['endTime']);
+    if (start == null || end == null) return '--:--';
+    final duration = end.difference(start);
+    return '${duration.inHours}:${(duration.inMinutes % 60).toString().padLeft(2, '0')}:${duration.inSeconds % 60}';
+  }
+
   String _getCategory(double value) {
     if (0 <= value && value <= 25) return "Apnea";
     if (25 < value && value <= 50) return "Quiet";
@@ -349,10 +358,22 @@ class SleepController {
 
   String getApneaSeverity() {
     if (!isLoaded) return "Unknown";
-    final totalSleepStr = getTotalSleepTime();
+    final totalSleepStr = getTotalSleepTimeInSec();
     final totalSleepMinutes = _parseTimeToMinutes(totalSleepStr);
     final apneaCount = sessionData!['apneacount'] as int? ?? 0;
+    
+    // ✅ Check for division by zero to prevent Infinity/NaN
+    if (totalSleepMinutes <= 0) {
+      return "0, no sleep time recorded";
+    }
+    
     double avgapnea = apneaCount / (totalSleepMinutes/60) ;
+    
+    // ✅ Check if avgapnea is valid before rounding
+    if (!avgapnea.isFinite) {
+      return "Unknown";
+    }
+    
     int apneacountperhour = avgapnea.round();
 
     String apneaseverity = "";
@@ -377,10 +398,12 @@ class SleepController {
     final veryLoundCount = sessionData!['verylound'] as int? ?? 0;
 
     final int total = apneaCount+quietCount+loundCount+veryLoundCount;
-    final double apneaPercent = (apneaCount / total.toDouble())*100;
-    final double quietPercent = (quietCount / total.toDouble())*100;
-    final double loundPercent = (loundCount / total.toDouble())*100;
-    final double veryLoundPercent = (veryLoundCount / total.toDouble())*100;
+    
+    // ✅ Check for division by zero to prevent Infinity/NaN
+    final double apneaPercent = total > 0 ? (apneaCount / total.toDouble())*100 : 0.0;
+    final double quietPercent = total > 0 ? (quietCount / total.toDouble())*100 : 0.0;
+    final double loundPercent = total > 0 ? (loundCount / total.toDouble())*100 : 0.0;
+    final double veryLoundPercent = total > 0 ? (veryLoundCount / total.toDouble())*100 : 0.0;
 
     return {
       'apnea': CategoryDetail(
@@ -431,8 +454,15 @@ class SleepController {
     final snorePercentage =
         totalSleepMinutes > 0 ? (snoreMinutes / totalSleepMinutes) * 100 : 0.0;
 
-    final snoreHours = (snoreMinutes ~/ 60).toInt();
-    final snoreMinutesRemainder = (snoreMinutes % 60).toInt();
+    // ✅ Check if snoreMinutes is finite before integer operations to prevent error with Infinity/NaN
+    int snoreHours = 0;
+    int snoreMinutesRemainder = 0;
+    
+    if (snoreMinutes.isFinite) {
+      snoreHours = (snoreMinutes ~/ 60).toInt();
+      snoreMinutesRemainder = (snoreMinutes % 60).toInt();
+    }
+    
     final totalSnoreTime =
         '$snoreHours:${snoreMinutesRemainder.toString().padLeft(2, '0')}';
     return SnoreStats(

@@ -67,120 +67,123 @@ class _RecordGeneralState extends State<RecordGeneral> {
     }
 
     return SafeArea(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-      
-          // Logo
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 35),
-                child: Image.asset("image/nornsabai_logo.png",width: 225,),
-              ),
-            ],
-          ),
-
-
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+        
+            // Logo
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // row
-                Row(
-                  children: [
-                    RecordContainer(
-                      size: 150,
-                      icon: Icons.king_bed,
-                      title: "Sleep Duration",
-                      subtitle: sleepsubtitle,
-                      onTap: () {
-                        
-                      },
-                    ),
-            
-                    SizedBox(width: 20,),
-            
-                    RecordContainer(
-                      size: 137.5,
-                      icon: Icons.play_circle_fill,
-                      title: "Result",
-                      subtitle: resultsubtitle,
-                      onTap: () {
-                        widget.setcurrent?.call(1);
-                      },
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 35),
+                  child: Image.asset("image/nornsabai_logo.png",width: 225,),
                 ),
-
-                SizedBox(height: 20,),
-
-                Row(
-                  children: [
-                    RecordContainer(
-                      size: 145,
-                      icon: Icons.health_and_safety,
-                      title: "Treatment",
-                      subtitle: "",
-                      onTap: () {
-                        
-                      },
-                    ),
-
-                    SizedBox(width: 20,),
-            
-                    RecordContainer(
-                      size: 145,
-                      icon: Icons.coffee,
-                      title: "Factor",
-                      subtitle: "",
-                      onTap: () {
-                        
-                      },
-                    ),
-                  ],
-                ),
-
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 50,vertical: 30),
-                  width: double.infinity,
-                  child: Slideable(
-                    items: <ActionItems>[
-                    ActionItems(
-                      icon: Icon(Icons.alarm_add,color: Colors.blueAccent,size: 50,),
-                      onPress: () {
-                        Alarmapnea();
-                      },
-                      backgroudColor: Colors.transparent,
-                    ),
-                  ],
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Color.fromARGB(255, 87, 141, 203),
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)
-                        ),
-                      ),
-                      onPressed: () async {
-                        bool granted = await requestMicrophonePermission();
-                        if (!granted) {
-                          print("ไม่สามารถอัดเสียงได้เพราะไม่มี permission");
-                          return;
-                        }else {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Sleeping()));
-                        }
-                      },
-                      child: Text("Start",style: TextStyle(color: Colors.white,fontSize: 30),)
-                    ),
-                  ),
-                ),
-              
               ],
             ),
-          )
-        ],
+        
+        
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 30),
+              child: Column(
+                children: [
+                  // row
+                  Row(
+                    children: [
+                      RecordContainer(
+                        size: 150,
+                        icon: Icons.king_bed,
+                        title: "Sleep Duration",
+                        subtitle: sleepsubtitle,
+                        onTap: () {
+                          
+                        },
+                      ),
+              
+                      SizedBox(width: 20,),
+              
+                      RecordContainer(
+                        size: 137.5,
+                        icon: Icons.play_circle_fill,
+                        title: "Result",
+                        subtitle: resultsubtitle,
+                        onTap: () {
+                          widget.setcurrent?.call(1);
+                        },
+                      ),
+                    ],
+                  ),
+        
+                  SizedBox(height: 20,),
+        
+                  Row(
+                    children: [
+                      RecordContainer(
+                        size: 145,
+                        icon: Icons.health_and_safety,
+                        title: "Treatment",
+                        subtitle: "",
+                        onTap: () {
+                          
+                        },
+                      ),
+        
+                      SizedBox(width: 20,),
+              
+                      RecordContainer(
+                        size: 145,
+                        icon: Icons.coffee,
+                        title: "Factor",
+                        subtitle: "",
+                        onTap: () {
+                          
+                        },
+                      ),
+                    ],
+                  ),
+        
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 50,vertical: 30),
+                    width: double.infinity,
+                    child: Slideable(
+                      
+                      items: <ActionItems>[
+                      ActionItems(
+                        icon: Icon(Icons.alarm_add,color: Colors.blueAccent,size: 50,),
+                        onPress: () {
+                          Alarmapnea();
+                        },
+                        backgroudColor: Colors.transparent,
+                      ),
+                    ],
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Color.fromARGB(255, 87, 141, 203),
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)
+                          ),
+                        ),
+                        onPressed: () async {
+                          bool granted = await requestMicrophonePermission();
+                          if (!granted) {
+                            print("ไม่สามารถอัดเสียงได้เพราะไม่มี permission");
+                            return;
+                          }else {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Sleeping()));
+                          }
+                        },
+                        child: Text("Start",style: TextStyle(color: Colors.white,fontSize: 30),)
+                      ),
+                    ),
+                  ),
+                
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
 }

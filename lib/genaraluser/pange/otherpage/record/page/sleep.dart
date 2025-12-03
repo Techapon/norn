@@ -201,8 +201,13 @@ class _SleepingState extends State<Sleeping> {
                               // pop: false,
                             );
                             Future.delayed(Duration(seconds: 2), () {
-                              Navigator.pop(context);
-                              Navigator.pop(context);
+                              // if can pop context  pop it
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
                             });
                             return false; // Prevent actual dismissal since we're navigating away
                           },
